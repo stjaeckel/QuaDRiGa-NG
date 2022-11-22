@@ -1,63 +1,34 @@
-# QuaDRiGa
+# QuaDRiGa-NG
+
+This is a fork of the original QuaDRiGa repository (v2.6.1) hosted by the Fraunhofer HHI (https://github.com/fraunhoferhhi/QuaDRiGa). 
+
 QuaDRiGa, short for QUAsi Deterministic RadIo channel GenerAtor, is used for generating realistic radio channel impulse responses for system-level simulations of mobile radio networks. These simulations are used to determine the performance of new digital-radio technologies in order to provide an objective indicator for the standardization process in bodies like the third generation partnership program 3GPP.
 
-QuaDRiGa was developed at Fraunhofer HHI to enable the modeling of MIMO radio channels for specific network configurations, such as indoor, satellite or heterogeneous configurations. Besides being a fully-fledged three dimensional geometry-based stochastic channel model, QuaDRiGa contains a collection of features created in SCM(e) and WINNER channel models along with novel modeling approaches which provide features to enable quasi-deterministic multi-link tracking of users (receiver) movements in changing environments.
+I, Stephan Jaeckel, PhD, wrote most of the ~80.000 lines of code during my time at Fraunhofer from 2011 to 2020. QuaDRiGa was the topic of my PhD thesis (https://www.db-thueringen.de/receive/dbt_mods_00032895) and numerous publications on the topic. I left Fraunhofer in 2020 to continue my career as a freelance consultant in the industry. Since then, I am no longer responsible for maintaining QuaDRiGa at Fraunhofer. I do not know what Fraunhofer's plans for QuaDRiGa are nor who will be responsible for technical support in the future. Since I offer support on QuaDRiGa as a freelance service for multiple contacts and use it for university teaching, I created this fork to maintain the code, provide bug fixes and develop new features.
 
-QuaDRiGa contains a couple of new features and is furthermore calibrated against 3GPP channel models like 3GPP-3D and the latest New Radio channel model. The supported (standardized) channel models are:
+For questions, bug reports, feature request, etc. please contact me at quadriga@sjc-wireless.com, through GitHub or LinkedIn (https://www.linkedin.com/in/stephan-jaeckel-phd-a66990a4). 
 
-* Compatibility with 3GPP TR 36.873 v12.5.0
-* Compatibility with 3GPP TR 38.901 v16.1.0
-* Compatibility with the mmMAGIC channel model (mmMAGIC D2.2)
-
+QuaDRiGa v2.6.1 is released under the
 Software License for The QuaDRiGa Channel Model  
 © Copyright 2011 - 2021 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V., All rights reserved.
 
-email: quadriga@hhi.fraunhofer.de
+## Future plans
 
-# Version history
-## Added features in version 2.6:
+I plan to extend the existing QuaDriGa code in several ways. However, this depends on the requirements from projects, contracts and my available time. The first extensions will be:
 
-* Octave 6.2 compatibility
-* GPU acceleration in Octave (requires OCL package)
-* Method to combine parameters of several different scenario configurations
-* Method to add semi-deterministic clusters
-* Method for calculating LSF and SSF parameters from MPCs
-* Save and load-functions for channel data
-* Performance improvements for larger scenarios
+* Array antenna processing functions written in C++ with MEX and Python wrappers
+* Sum-of-sinusoids random number generator written in C++ with MEX and python wrappers
 
-## Added features in version 2.4:
+These functions contain the most computing intense parts of QuaDRiGa and may use up to 80% of the computing time. Providing native C++ code with potential (optional) NIVIDIA-CUDA and multi-core acceleration trough OpenMP can provide enormous performance gains. Also, these parts can be valuable components for other software projects unrelated to QuaDRiGa (such as RayTracing or DataScience applications). Hence, the new functionality will be provided by a set of separate libraries released under a Free-Software license. Integration with the existing QuaDRiGa code will be realized through a MEX wrapper. Native python wrappers will also made available. 
 
-* Satellite channel modelling (multi-beam parabolic antennas, non-GSO satellite orbit model, TLE-data import, model parameters)
-* 3GPP CDL and TDL models (TS 36.104 LTE, TR 38.901 NR, TR 37.885 V2X)
-* 3GPP 38.901 InF models (absolute TOA model, InF parameters)
-* Sement-by-segment channel generation
+Further ideas are:
 
-## Added features in version 2.2:
+* QuaDRiGa support library (written in C++) for common functions such as parameter generation, channel generation, data import/export, channel interpolation
+* Python implementation of the whole framework
+* Integration of Ray-Tracing functions for site-specific simulations
+* Support for latest 3GPP channel models
+* Support for MATLAB, Octave and Python on Windows and Linux platforms
+* WiKi containing the documentation
+* Community contributions through GitHUB
 
-* Dual-mobility functionality
-* Support for Industrial Indoor scenario
-* Data Exchange Formats:
-* QuaDRiGa Array Antenna Exchange Format (QDANT)
-* QuaDRiGa Layout Exchange Format (based on KML)
-* Updated technical documentation
-
-## Features of version 2.0:
-
-* Octave (v4.0) support
-* 3D spatial consistency of large and small-scale fading based on the sum-of-sinusoids method
-* Multi-frequency simulations (supporting carrier aggregation and functional split)
-* Added support for scenarios: Indoor office, Rural Macrocell
-* Supported frequency range: 500 MHz to 100 GHz carrier frequency, 100 MHz bandwidth  (2 GHz bandwidth for mmMAGIC models)
-* Outdoor-to indoor penetration loss models (3GPP 38.901 and mmMAGIC models)
-* Explicit ground reflection model
-
-## Features of  version 1.4:
-
-* Temporal evolution of the channel coefficients by updating the delays, the departure and arrival angles, the polarization, the shadow fading and the K-Factor
-* Scenario transitions (including birth and death of scattering clusters)
-* Variable speeds for mobile terminals
-* Geometric polarization
-* Spherical waves and support large array antennas
-* Freely configurable array antenna support (including 3GPP antennas). Supports import of measured and simulated far-field antenna patterns.
-* Supported scenarios: Urban Macrocell, Urban Microcell
-* Supported frequency range: 500 MHz to 6 GHz carrier frequency, 100 MHz bandwidth
+I am currently working on this in my free time with limited funding and can therefore not provide a definitive timeline. Please contact me if you have questions or comments.
