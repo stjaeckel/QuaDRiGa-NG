@@ -12,6 +12,14 @@ QuaDRiGa v2.6.1 is released under the
 Software License for The QuaDRiGa Channel Model  
 © Copyright 2011 - 2021 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V., All rights reserved.
 
+## Current Version
+
+The current experimental version requires the ``arrayant-lib`` library to work. This library implements some core functionality in C++/MEX for faster execution and interfaces for future projects. The library can be found here: https://github.com/stjaeckel/arrayant-lib. After installing the library, calling ``qd_simulation_parameters`` on the MATLAB/Octave command prompt should show the QuaDRiGa version 3.0.0 and ``arrayant-lib``-version 0.1.0. If it shows an error, you might need to recompile the library.
+
+List of changes:
+* v3.0.0 - Replacing the ``qd_array.interpolate`` method with the one provided by the ``arrayant-lib`` library improves performance by up to 70% on multi-core CPUs
+
+
 ## Future plans
 
 I plan to extend the existing QuaDriGa code in several ways. However, this depends on the requirements from projects, contracts and my available time. The first extensions will be:

@@ -32,40 +32,47 @@ function combine_pattern( h_qd_arrayant, center_frequency )
 % contributors "AS IS" and WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES, including but not limited to
 % the implied warranties of merchantability and fitness for a particular purpose.
 %
-% You can redistribute it and/or modify QuaDRiGa under the terms of the Software License for 
+% You can redistribute it and/or modify QuaDRiGa under the terms of the Software License for
 % The QuaDRiGa Channel Model. You should have received a copy of the Software License for The
-% QuaDRiGa Channel Model along with QuaDRiGa. If not, see <http://quadriga-channel-model.de/>. 
+% QuaDRiGa Channel Model along with QuaDRiGa. If not, see <http://quadriga-channel-model.de/>.
 
-if numel( h_qd_arrayant ) > 1 
-   error('QuaDRiGa:qd_arrayant:combine_pattern','combine_pattern not definded for object arrays.');
+if numel( h_qd_arrayant ) > 1
+    error('QuaDRiGa:qd_arrayant:combine_pattern','combine_pattern not definded for object arrays.');
 else
     h_qd_arrayant = h_qd_arrayant(1,1); % workaround for octave
 end
 
 % We assume that spacings can be given in units "lambda".
 % The base-frequency is therefor ~ 300 MHz , so the wavelength is 1 m
-
 if ~exist('center_frequency','var')
-    center_frequency = h_qd_arrayant.center_frequency;           
+    center_frequency = h_qd_arrayant.center_frequency;
+end
+
+% Determine if we use single pr double precision
+single_precision = false;
+if isa( h_qd_arrayant.Fa, 'single' )
+    single_precision = true;
+    precision = 'single';
+else
+    precision = 'double';
 end
 
 % The receiver positions are placed in 1000 lambda distance in the same grid
 % given by the elevation and azimuth angles in the original qd_arrayant.
+if single_precision
+    phi    = single( h_qd_arrayant.azimuth_grid );
+    theta  = single( h_qd_arrayant.elevation_grid' );
+    lambda = single( 299792458 / center_frequency );
+else
+    phi    = double( h_qd_arrayant.azimuth_grid );
+    theta  = double( h_qd_arrayant.elevation_grid' );
+    lambda = double( 299792458 / center_frequency );
+end
 
-phi   = h_qd_arrayant.azimuth_grid;
-theta = h_qd_arrayant.elevation_grid';
 no_az = h_qd_arrayant.no_az;
 no_el = h_qd_arrayant.no_el;
-no_tx = h_qd_arrayant.no_elements; 
+no_tx = h_qd_arrayant.no_elements;
 no_positions = no_az * no_el;
-
-precision = 'double';
-if isa(phi,'single') && isa(theta,'single')
-    precision = 'single';
-    lambda = 299792458 / single( center_frequency );
-else
-    lambda = 299792458 / center_frequency;
-end
 wave_no = 2*pi/lambda;
 
 B = zeros( 3,no_el,no_az,precision);
@@ -76,8 +83,8 @@ B = 1000*lambda*reshape(B, 3, no_positions);
 
 % Calculate the angles
 angles = zeros( 4,no_positions,precision);
-angles(1,:) = atan2( B(2,:),  B(1,:) );     % ThetaBs 
-angles(2,:) = pi + angles(1,:);             % ThetaMs 
+angles(1,:) = atan2( B(2,:),  B(1,:) );     % ThetaBs
+angles(2,:) = pi + angles(1,:);             % ThetaMs
 angles(3,:) = atan( B(3,:) ./ sqrt( B(1,:).^2 + B(2,:).^2 ) );   % EaBs
 
 % When Rx and Tx are at the same position, the angle is NaN
@@ -86,7 +93,18 @@ angles(3, isnan( angles(3,:) ) ) = 0;
 angles(4,:) = -angles(3,:);     % EaMs
 
 % Interpolate the patterns
-[ Vt,Ht,Pt ] = h_qd_arrayant.interpolate( angles(1,:) , angles(3,:) );
+if single_precision
+    [ Vt,Vi,Ht,Hi,Pt ] = arrayant_lib.interpolate( real(h_qd_arrayant.Fa), imag(h_qd_arrayant.Fa), ...
+        single(real(h_qd_arrayant.Fb)), single(imag(h_qd_arrayant.Fb)), ...
+        phi, theta, angles(1,:), angles(3,:), [], [], single(h_qd_arrayant.element_position));
+else
+    [ Vt,Vi,Ht,Hi,Pt ] = arrayant_lib.interpolate( real(h_qd_arrayant.Fa), imag(h_qd_arrayant.Fa), ...
+        double(real(h_qd_arrayant.Fb)), double(imag(h_qd_arrayant.Fb)), ...
+        phi, theta, angles(1,:), angles(3,:), [], [], double(h_qd_arrayant.element_position));
+end
+Vt = complex(Vt,Vi);
+Ht = complex(Ht,Hi);
+
 Ct = h_qd_arrayant.coupling;
 Pt = exp( -1j*(  wave_no*( Pt )));
 

@@ -268,6 +268,42 @@ else
             end
         end
         
+        % Extract RX the antenna pattern data for interpolation and store it locallly
+        rx_single = isa( h_builder.rx_array(1,i_mobile).Fa, 'single' );
+        rx_Fa_real = real( h_builder.rx_array(1,i_mobile).Fa );
+        rx_Fa_imag = imag( h_builder.rx_array(1,i_mobile).Fa );
+        if rx_single
+            rx_Fb_real = single( real( h_builder.rx_array(1,i_mobile).Fb ));
+            rx_Fb_imag = single( imag( h_builder.rx_array(1,i_mobile).Fb ));
+            rx_az_grid = single( h_builder.rx_array(1,i_mobile).azimuth_grid );
+            rx_el_grid = single( h_builder.rx_array(1,i_mobile).elevation_grid );
+            rx_el_pos  = single( h_builder.rx_array(1,i_mobile).element_position );
+        else
+            rx_Fb_real = double( real( h_builder.rx_array(1,i_mobile).Fb ));
+            rx_Fb_imag = double( imag( h_builder.rx_array(1,i_mobile).Fb ));
+            rx_az_grid = double( h_builder.rx_array(1,i_mobile).azimuth_grid );
+            rx_el_grid = double( h_builder.rx_array(1,i_mobile).elevation_grid );
+            rx_el_pos  = double( h_builder.rx_array(1,i_mobile).element_position );
+        end
+        
+        % Extract TX the antenna pattern data for interpolation and store it locallly
+        tx_single = isa( h_builder.tx_array(1,i_mobile).Fa, 'single' );
+        tx_Fa_real = real( h_builder.tx_array(1,i_mobile).Fa );
+        tx_Fa_imag = imag( h_builder.tx_array(1,i_mobile).Fa );
+        if tx_single
+            tx_Fb_real = single( real( h_builder.tx_array(1,i_mobile).Fb ));
+            tx_Fb_imag = single( imag( h_builder.tx_array(1,i_mobile).Fb ));
+            tx_az_grid = single( h_builder.tx_array(1,i_mobile).azimuth_grid );
+            tx_el_grid = single( h_builder.tx_array(1,i_mobile).elevation_grid );
+            tx_el_pos  = single( h_builder.tx_array(1,i_mobile).element_position );
+        else
+            tx_Fb_real = double( real( h_builder.tx_array(1,i_mobile).Fb ));
+            tx_Fb_imag = double( imag( h_builder.tx_array(1,i_mobile).Fb ));
+            tx_az_grid = double( h_builder.tx_array(1,i_mobile).azimuth_grid );
+            tx_el_grid = double( h_builder.tx_array(1,i_mobile).elevation_grid );
+            tx_el_pos  = double( h_builder.tx_array(1,i_mobile).element_position );
+        end
+        
         % Do for each snapshot
         for i_snapshot = 1 : no_snap_process          % Track positions
             
@@ -293,35 +329,63 @@ else
             if use_3GPP_baseline % Planar waves
 
                 % Interpolate the receive antenna patterns
-                [ gVr, gHr, Pr, aoa, eoa ] = interpolate( h_builder.rx_array(1,i_mobile), aoa, eoa, [], ...
-                    rx_orientation(:,i_snapshot), 14.3239, use_gpu(use_gpu~=0)+2 );
-                gVr = reshape( gVr, n_rxant,1,n_paths );
-                gHr = reshape( gHr, n_rxant,1,n_paths );
+                if rx_single
+                    [gVr, Vi, gHr, Hi, Pr, aoa, eoa] = arrayant_lib.interpolate( rx_Fa_real, rx_Fa_imag, ...
+                        rx_Fb_real, rx_Fb_imag, rx_az_grid, rx_el_grid, single(aoa), single(eoa), [], ...
+                        single(rx_orientation(:,i_snapshot)), rx_el_pos );
+                else
+                    [gVr, Vi, gHr, Hi, Pr, aoa, eoa] = arrayant_lib.interpolate( rx_Fa_real, rx_Fa_imag, ...
+                        rx_Fb_real, rx_Fb_imag, rx_az_grid, rx_el_grid, double(aoa), double(eoa), [], ...
+                        double(rx_orientation(:,i_snapshot)), rx_el_pos );
+                end
+                gVr = reshape( complex(gVr,Vi), n_rxant,1,n_paths );
+                gHr = reshape( complex(gHr,Hi), n_rxant,1,n_paths );
                 Pr = reshape( Pr, n_rxant,1,n_paths );
                 
                 % Interpolate the transmit antenna patterns
-                [ gVt, gHt, Pt ] = interpolate( h_builder.tx_array(1,i_mobile), aod, eod, [], ...
-                    tx_orientation(:,i_snapshot), 14.3239, use_gpu(use_gpu~=0)+2 );
-                gVt = reshape( gVt, 1,n_txant,n_paths );
-                gHt = reshape( gHt, 1,n_txant,n_paths );
-                Pt = reshape( Pt, 1,n_txant,n_paths );
+                if tx_single
+                    [gVt, Vi, gHt, Hi, Pt] = arrayant_lib.interpolate( tx_Fa_real, tx_Fa_imag, ...
+                        tx_Fb_real, tx_Fb_imag, tx_az_grid, tx_el_grid, single(aod), single(eod), [], ...
+                        single(tx_orientation(:,i_snapshot)), tx_el_pos );
+                else
+                    [gVt, Vi, gHt, Hi, Pt] = arrayant_lib.interpolate( tx_Fa_real, tx_Fa_imag, ...
+                        tx_Fb_real, tx_Fb_imag, tx_az_grid, tx_el_grid, double(aod), double(eod), [], ...
+                        double(tx_orientation(:,i_snapshot)), tx_el_pos );
+                end
+                gVt = reshape( complex(gVt,Vi), 1,n_txant,n_paths );
+                gHt = reshape( complex(gHt,Hi), 1,n_txant,n_paths );
+                Pt  = reshape( Pt, 1,n_txant,n_paths );
                 
                 % Calculate the Doppler profile.
                 doppler = cos(aoa+pi).*cos(eoa);
                 
             else
                 % Interpolate the receive antenna patterns
-                [ gVr, gHr ] = interpolate( h_builder.rx_array(1,i_mobile), aoa, eoa, [], ...
-                    rx_orientation(:,i_snapshot), 14.3239, use_gpu(use_gpu~=0)+2 );
-                gVr = reshape( gVr, n_rxant,1,n_paths );
-                gHr = reshape( gHr, n_rxant,1,n_paths );
+                if rx_single
+                    [gVr, Vi, gHr, Hi] = arrayant_lib.interpolate( rx_Fa_real, rx_Fa_imag, ...
+                        rx_Fb_real, rx_Fb_imag, rx_az_grid, rx_el_grid, single(aoa), single(eoa), [], ...
+                        single(rx_orientation(:,i_snapshot)), rx_el_pos );
+                else
+                    [gVr, Vi, gHr, Hi] = arrayant_lib.interpolate( rx_Fa_real, rx_Fa_imag, ...
+                        rx_Fb_real, rx_Fb_imag, rx_az_grid, rx_el_grid, double(aoa), double(eoa), [], ...
+                        double(rx_orientation(:,i_snapshot)), rx_el_pos );
+                end
+                gVr = reshape( complex(gVr,Vi), n_rxant,1,n_paths );
+                gHr = reshape( complex(gHr,Hi), n_rxant,1,n_paths );
                 
                 % Interpolate the transmit antenna patterns only when needed
                 if update_tx_ant
-                    [ gVt, gHt ] = interpolate( h_builder.tx_array(1,i_mobile), aod, eod, [], ...
-                        tx_orientation(:,i_snapshot), 14.3239, use_gpu(use_gpu~=0)+2 );
-                    gVt = reshape( gVt, 1,n_txant,n_paths );
-                    gHt = reshape( gHt, 1,n_txant,n_paths );
+                    if tx_single
+                        [gVt, Vi, gHt, Hi] = arrayant_lib.interpolate( tx_Fa_real, tx_Fa_imag, ...
+                            tx_Fb_real, tx_Fb_imag, tx_az_grid, tx_el_grid, single(aod), single(eod), [], ...
+                            single(tx_orientation(:,i_snapshot)), tx_el_pos );
+                    else
+                        [gVt, Vi, gHt, Hi] = arrayant_lib.interpolate( tx_Fa_real, tx_Fa_imag, ...
+                            tx_Fb_real, tx_Fb_imag, tx_az_grid, tx_el_grid, double(aod), double(eod), [], ...
+                            double(tx_orientation(:,i_snapshot)), tx_el_pos );
+                    end
+                    gVt = reshape( complex(gVt,Vi), 1,n_txant,n_paths );
+                    gHt = reshape( complex(gHt,Hi), 1,n_txant,n_paths );
                 end
             end
             
@@ -336,22 +400,36 @@ else
                 % Calculate the RX antenna response for the LOS and GR path
                 aoa_los = reshape( permute( aoa_los, [3,4,2,1] ) ,n_rxant,[] );
                 eoa_los = reshape( permute( eoa_los, [3,4,2,1] ) ,n_rxant,[] );
-                [ gVLr,gHLr ] = interpolate( h_builder.rx_array(1,i_mobile), aoa_los, eoa_los, [], ...
-                    rx_orientation(:,i_snapshot), 14.3239, use_gpu(use_gpu~=0)+2 );
-                gVLr = reshape( gVLr, n_rxant, n_txant, [] );
-                gHLr = reshape( gHLr, n_rxant, n_txant, [] );
+                if rx_single
+                    [gVLr, Vi, gHLr, Hi] = arrayant_lib.interpolate( rx_Fa_real, rx_Fa_imag, ...
+                        rx_Fb_real, rx_Fb_imag, rx_az_grid, rx_el_grid, single(aoa_los), single(eoa_los), [], ...
+                        single(rx_orientation(:,i_snapshot)), rx_el_pos );
+                else
+                    [gVLr, Vi, gHLr, Hi] = arrayant_lib.interpolate( rx_Fa_real, rx_Fa_imag, ...
+                        rx_Fb_real, rx_Fb_imag, rx_az_grid, rx_el_grid, double(aoa_los), double(eoa_los), [], ...
+                        double(rx_orientation(:,i_snapshot)), rx_el_pos );
+                end
+                gVLr = reshape( complex(gVLr,Vi), n_rxant, n_txant, [] );
+                gHLr = reshape( complex(gHLr,Hi), n_rxant, n_txant, [] );
                 
                 % Calculate the TX antenna response for the LOS and GR path
                 aod_los = reshape( permute( aod_los, [4,3,2,1] ) ,n_txant,[] );
                 eod_los = reshape( permute( eod_los, [4,3,2,1] ) ,n_txant,[] );
-                [ gVLt,gHLt ] = interpolate( h_builder.tx_array(1,i_mobile), aod_los, eod_los, [], ...
-                    tx_orientation(:,i_snapshot), 14.3239, use_gpu(use_gpu~=0)+2 );
-                if use_ground_reflection 
-                    gVLt = reshape( gVLt, n_txant, n_rxant, [] );   % Warning: wrong order!
-                    gHLt = reshape( gHLt, n_txant, n_rxant, [] );   % Warning: wrong order!
+                if tx_single
+                    [gVLt, Vi, gHLt, Hi] = arrayant_lib.interpolate( tx_Fa_real, tx_Fa_imag, ...
+                        tx_Fb_real, tx_Fb_imag, tx_az_grid, tx_el_grid, single(aod_los), single(eod_los), [], ...
+                        single(tx_orientation(:,i_snapshot)), tx_el_pos );
                 else
-                    gVLt = gVLt.';
-                    gHLt = gHLt.';
+                    [gVLt, Vi, gHLt, Hi] = arrayant_lib.interpolate( tx_Fa_real, tx_Fa_imag, ...
+                        tx_Fb_real, tx_Fb_imag, tx_az_grid, tx_el_grid, double(aod_los), double(eod_los), [], ...
+                        double(tx_orientation(:,i_snapshot)), tx_el_pos );
+                end
+                if use_ground_reflection 
+                    gVLt = reshape( complex(gVLt,Vi), n_txant, n_rxant, [] );   % Warning: wrong order!
+                    gHLt = reshape( complex(gHLt,Hi), n_txant, n_rxant, [] );   % Warning: wrong order!
+                else
+                    gVLt = complex(gVLt,Vi).';
+                    gHLt = complex(gHLt,Hi).';
                 end
                 
                 % Calculate the additional polarization scaling factors for the ground reflection
