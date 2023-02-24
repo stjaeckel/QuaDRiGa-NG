@@ -101,11 +101,11 @@ end
 
 properties(Constant)
     % Version number of the current QuaDRiGa release (constant)
-    version = '3.0.0-0';
+    version = '3.0.1-0';
 end
 
 properties(Dependent,SetAccess=protected)
-    arrayant_lib_version
+    quadriga_lib_version
 end
 
 properties(Constant)
@@ -137,9 +137,9 @@ methods
     function out = get.samples_per_meter(obj)
         out = 2*max( obj.center_frequency )*obj.Psample_density ./ obj.speed_of_light;
     end
-    function out = get.arrayant_lib_version(obj)
+    function out = get.quadriga_lib_version(obj)
         try
-            out = arrayant_lib.version;
+            out = quadriga_lib.version;
         catch
             out = 'ERROR';
         end

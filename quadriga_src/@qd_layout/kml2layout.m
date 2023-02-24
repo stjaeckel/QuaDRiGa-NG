@@ -501,7 +501,7 @@ else
         if h_layout.simpar(1,1).show_progress_bars
             fprintf(['Loading "',antenna_file{n},'" ... ']);
         end
-        a_tmp = qd_arrayant.xml_read( antenna_file{n}, [], [], [], 1 );
+        a_tmp = qd_arrayant.xml_read( antenna_file{n}, 1 );
         if h_layout.simpar(1,1).show_progress_bars
             fprintf([num2str(numel(a_tmp)),' antenna']);
             if numel(a_tmp) == 1

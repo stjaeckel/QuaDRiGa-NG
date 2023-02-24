@@ -19,8 +19,7 @@ function layout2kml( h_layout , fn , reference_coord, embed_antennas, use_descri
 %   is placed at QuaDRiGas origin: 13.324947e,52.516319n.
 %
 %   embed_antennas
-%   Boolean value (optional). By default (1), antennas are embedded into the KML file. If disabled
-%   (0), antennas are written to an external QDANT file.
+%   DEPRECATED: Antennas are never embedded!   
 %
 %   use_description
 %   Boolean value (optional). By default (0), additional QuaDRiGa simulation parameters are written
@@ -79,9 +78,7 @@ if ~exist('reference_coord','var') || isempty( reference_coord )
     end
 end
 
-if ~exist('embed_antennas','var') || isempty( embed_antennas )
-    embed_antennas = true;
-end
+embed_antennas = false;
 
 if ~exist('use_description','var') || isempty( use_description )
     use_description = false;

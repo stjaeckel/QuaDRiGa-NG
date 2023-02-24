@@ -17,7 +17,7 @@ Software License for The QuaDRiGa Channel Model
 The current experimental version requires the ``arrayant-lib`` library to work. This library implements some core functionality in C++/MEX for faster execution and interfaces for future projects. The library can be found here: https://github.com/stjaeckel/arrayant-lib. After installing the library, calling ``qd_simulation_parameters`` on the MATLAB/Octave command prompt should show the QuaDRiGa version 3.0.0 and ``arrayant-lib``-version 0.1.0. If it shows an error, you might need to recompile the library.
 
 List of changes:
-* v3.0.0 - Replacing the ``qd_array.interpolate`` method with the one provided by the ``arrayant-lib`` library improves performance by up to 70% on multi-core CPUs
+* v3.0.1 - Replacing the ``qd_array.interpolate`` method with the one provided by the ``arrayant-lib`` library improves performance by up to 70% on multi-core CPUs
 
 
 ## Future plans
