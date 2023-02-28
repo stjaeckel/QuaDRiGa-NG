@@ -280,15 +280,11 @@ elseif update_input || nargout > 1                                      % Only i
         % Interpolate the orientations
         orientation = h_track.orientation;
         if ~isempty( orientation )
+            % We need "Circular linear interpolation" here. This is not implemented in MATLAB.
             orientation_int = zeros(3,no_snapshots_out);
-            
-            % Roll (full circle)
-            % We need "Spherical Linear Interpolation" here. This is not implemented in MATLAB.
             orientation_int(1,:) = qf.slerp( dist_in, orientation(1,:), 0, dist, true );
-            
-            % Pitch and Yaw
-            [ orientation_int(3,:), orientation_int(2,:) ] =...
-                qf.slerp( dist_in, orientation(3,:), orientation(2,:), dist, true  );
+            orientation_int(2,:) = qf.slerp( dist_in, orientation(2,:), 0, dist, true );
+            orientation_int(3,:) = qf.slerp( dist_in, orientation(3,:), 0, dist, true );
         else
             orientation_int = [];
         end

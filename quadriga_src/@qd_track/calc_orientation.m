@@ -137,17 +137,9 @@ else
                 '"yaw" must be either scalar or match the numer of snapshots.');
         end
         
-        % Apply updates
-        Rn = qf.calc_ant_rotation( yaw, -pitch );
-        Ro = qf.calc_ant_rotation( orientation(3,:), -orientation(2,:) );
-        for is = 1 : no_snapshots
-            C = Ro(:,:,is)*Rn(:,:,is)*[1;0;0];
-            C(3,C(3)> 1) = 1;         % Possible numeric instability
-            C(3,C(3)<-1) = -1;        % Possible numeric instability
-            orientation(2,is) = asin( C(3) );
-            orientation(3,is) = atan2( C(2),C(1) );
-        end
-        orientation(1,:) = angle(exp(1j*(orientation(1,:)+roll)));
+        % Update orientation
+        orientation = orientation + [roll;pitch;yaw];
+        orientation = angle(exp(1j*orientation));
         h_track.orientation = orientation;
     end
 end
