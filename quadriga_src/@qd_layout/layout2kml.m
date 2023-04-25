@@ -161,13 +161,7 @@ fprintf(f,'<Document>\n');                                      % Add Document e
 fprintf(f,['<name>',fn,'</name>\n']);                           % Save Filename
 
 if any( [ a_txind(:) ; a_rxind(:) ] ~= 0 )
-    if embed_antennas                                           % Save the antennas
-        fprintf(f,'<ExtendedData>\n');                          % Embedded in the KML
-        xml_write( a, [], 'qdant', [], f );
-        fprintf(f,'</ExtendedData>\n');
-    else
-        xml_write( a, [fn,'.qdant'] );                          % External file
-    end
+    xml_write( a, [fn,'.qdant'] );                          % External file
 end
 
 fprintf(f,'<Folder>\n');                                        % Add Folder element

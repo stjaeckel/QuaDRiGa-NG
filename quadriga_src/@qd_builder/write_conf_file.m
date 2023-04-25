@@ -49,7 +49,7 @@ else
 end
 
 if ~exist( 'fn','var' ) || isempty( fn )
-    error('QuaDRiGa:qd_arrayant:xml_write',...
+    error('QuaDRiGa:qd_builder:write_conf_file',...
         'You did not specify a filename.');
 end
 
@@ -66,14 +66,14 @@ end
 if ~exist( 'ref_sec','var' ) || isempty( ref_sec )
     ref_sec = [];
 elseif ~iscell(ref_sec) || numel( ref_sec ) ~= 8
-    error('QuaDRiGa:qd_arrayant:xml_write',...
+    error('QuaDRiGa:qd_builder:write_conf_file',...
         '"ref_sec" must be a cell array with 8 variables.');
 end
 
 if ~exist( 'valid_range','var' ) || isempty( valid_range )
     valid_range = [];
 elseif all( size( valid_range ) ~= [4,2] )
-    error('QuaDRiGa:qd_arrayant:xml_write',...
+    error('QuaDRiGa:qd_builder:write_conf_file',...
         '"valid_range" must be a 4x2 array.');
 end
 

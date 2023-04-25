@@ -19,6 +19,7 @@ The current experimental version requires the ``quadriga-lib`` library to work. 
 List of changes:
 * v3.0.1 - Replacing the ``qd_array.interpolate`` method with the one provided by the ``quadriga-lib`` library improves performance by up to 70% on multi-core CPUs
 * v3.0.2 - Bugfix: Spheric linear interpolation in "qd_track.interpolate" could lead to unexpected orientation changes
+* v3.0.3 - Update: Replaced read and write functions for QDANT-Files with the ones provided by ``quadriga-lib``
 
 
 ## Future plans
