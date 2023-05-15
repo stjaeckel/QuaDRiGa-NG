@@ -169,9 +169,9 @@ function [ h_qd_arrayant, par ] = generate( array_type, Ain, Bin, Cin, Din, Ein,
 % contributors "AS IS" and WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES, including but not limited to
 % the implied warranties of merchantability and fitness for a particular purpose.
 %
-% You can redistribute it and/or modify QuaDRiGa under the terms of the Software License for 
+% You can redistribute it and/or modify QuaDRiGa under the terms of the Software License for
 % The QuaDRiGa Channel Model. You should have received a copy of the Software License for The
-% QuaDRiGa Channel Model along with QuaDRiGa. If not, see <http://quadriga-channel-model.de/>. 
+% QuaDRiGa Channel Model along with QuaDRiGa. If not, see <http://quadriga-channel-model.de/>.
 
 % Default return for par
 par = [];
@@ -186,17 +186,17 @@ end
 
 array_type = lower( array_type );
 switch array_type
-    case 'omni'
-        h_qd_arrayant = gen_arrayant_omni;
-        
-    case {'short-dipole', 'dipole'}
-        h_qd_arrayant = gen_arrayant_dipole;
-        
-    case 'half-wave-dipole'
-        h_qd_arrayant = gen_arrayant_half_wave_dipole;
-        
+    case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole'}
+        [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
+            coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate(array_type);
+       
     case 'custom'
+%         [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
+%             coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate('custom', Ain, Bin, Cin );
+        
         [ h_qd_arrayant, par ] = gen_arrayant_custom( Ain, Bin, Cin );
+        
+        
         
     case 'patch'
         [ h_qd_arrayant, par ] = gen_arrayant_custom( 90, 90, 0 );
@@ -226,8 +226,7 @@ switch array_type
         h_qd_arrayant.Fb(:,:,2) = 1;
         
     case 'rhcp-dipole'
-        
-        h_qd_arrayant = gen_arrayant_dipole;
+        h_qd_arrayant = qd_arrayant('dipole');
         copy_element( h_qd_arrayant,1,2 );
         rotate_pattern( h_qd_arrayant,90,'x',2 );
         h_qd_arrayant.coupling = 1/sqrt(2) * [1;-1j];
@@ -268,6 +267,21 @@ switch array_type
         error('QuaDRiGa:qd_arrayant:generate',['??? Array type "',array_type,'" is not supported.']);
 end
 
-h_qd_arrayant.name = array_type;
+switch array_type
+    case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole'}
+        h_qd_arrayant = qd_arrayant([]);
+        h_qd_arrayant.azimuth_grid = azimuth_grid;
+        h_qd_arrayant.elevation_grid = elevation_grid;
+        h_qd_arrayant.PFa = complex( e_theta_re, e_theta_im );
+        h_qd_arrayant.PFb = complex( e_phi_re, e_phi_im );
+        h_qd_arrayant.Pelement_position = element_pos;
+        h_qd_arrayant.Pcoupling = complex(coupling_re, coupling_im);
+        h_qd_arrayant.Pphase_diff = [];
+        h_qd_arrayant.center_frequency = center_frequency;
+        h_qd_arrayant.Pno_elements = size( e_theta_re,3 );
+        h_qd_arrayant.name = name;
+    otherwise
+        h_qd_arrayant.name = array_type;
+end
 
 end

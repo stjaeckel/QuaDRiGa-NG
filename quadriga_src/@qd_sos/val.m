@@ -141,7 +141,7 @@ else
             
             % Interpolate the ACF
             D( D>h_sos.dist(end) ) = h_sos.dist(end);
-            A = qf.interp( h_sos.dist, 0, h_sos.acf, D );
+            A = quadriga_lib.interp( h_sos.dist, 0, h_sos.acf, D );
             
             % Combine the two values
             s = (sa+sb) ./ sqrt(2+2*A);
@@ -177,7 +177,7 @@ else
                 bins(end) = 1;
                 
                 % Interpolate output such that the values match the given distribution
-                s = qf.interp( bins, [], cdf.', s );
+                s = quadriga_lib.interp( bins, [], cdf.', s );
             end
     end
 end

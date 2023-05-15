@@ -19,7 +19,7 @@ function combine_pattern( h_qd_arrayant, center_frequency )
 %   multiples of the carrier wavelength.
 %
 %
-% QuaDRiGa Copyright (C) 2011-2019
+% QuaDRiGa Copyright (C) 2011-2023
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -48,116 +48,28 @@ if ~exist('center_frequency','var')
     center_frequency = h_qd_arrayant.center_frequency;
 end
 
-% Determine if we use single pr double precision
-single_precision = false;
+% Determine if we use single or double precision
 if isa( h_qd_arrayant.Fa, 'single' )
-    single_precision = true;
+    single( h_qd_arrayant );
     precision = 'single';
 else
+    double( h_qd_arrayant );
     precision = 'double';
 end
 
-% The receiver positions are placed in 1000 lambda distance in the same grid
-% given by the elevation and azimuth angles in the original qd_arrayant.
-if single_precision
-    phi    = single( h_qd_arrayant.azimuth_grid );
-    theta  = single( h_qd_arrayant.elevation_grid' );
-    lambda = single( 299792458 / center_frequency );
-else
-    phi    = double( h_qd_arrayant.azimuth_grid );
-    theta  = double( h_qd_arrayant.elevation_grid' );
-    lambda = double( 299792458 / center_frequency );
-end
-
-no_az = h_qd_arrayant.no_az;
-no_el = h_qd_arrayant.no_el;
-no_tx = h_qd_arrayant.no_elements;
-no_positions = no_az * no_el;
-wave_no = 2*pi/lambda;
-
-B = zeros( 3,no_el,no_az,precision);
-B(1,:,:) = cos(theta)*cos(phi);
-B(2,:,:) = cos(theta)*sin(phi);
-B(3,:,:) = sin(theta)*ones(1,no_az);
-B = 1000*lambda*reshape(B, 3, no_positions);
-
-% Calculate the angles
-angles = zeros( 4,no_positions,precision);
-angles(1,:) = atan2( B(2,:),  B(1,:) );     % ThetaBs
-angles(2,:) = pi + angles(1,:);             % ThetaMs
-angles(3,:) = atan( B(3,:) ./ sqrt( B(1,:).^2 + B(2,:).^2 ) );   % EaBs
-
-% When Rx and Tx are at the same position, the angle is NaN
-% We set it to 0 instead.
-angles(3, isnan( angles(3,:) ) ) = 0;
-angles(4,:) = -angles(3,:);     % EaMs
-
-% Interpolate the patterns
-if single_precision
-    [ Vt,Vi,Ht,Hi,Pt ] = quadriga_lib.arrayant_interpolate( real(h_qd_arrayant.Fa), imag(h_qd_arrayant.Fa), ...
-        single(real(h_qd_arrayant.Fb)), single(imag(h_qd_arrayant.Fb)), ...
-        phi, theta, angles(1,:), angles(3,:), [], [], single(h_qd_arrayant.element_position));
-else
-    [ Vt,Vi,Ht,Hi,Pt ] = quadriga_lib.arrayant_interpolate( real(h_qd_arrayant.Fa), imag(h_qd_arrayant.Fa), ...
-        double(real(h_qd_arrayant.Fb)), double(imag(h_qd_arrayant.Fb)), ...
-        phi, theta, angles(1,:), angles(3,:), [], [], double(h_qd_arrayant.element_position));
-end
-Vt = complex(Vt,Vi);
-Ht = complex(Ht,Hi);
-
-Ct = h_qd_arrayant.coupling;
-Pt = exp( -1j*(  wave_no*( Pt )));
-
-% Calculate the coefficients
-c = zeros( 2*no_tx , no_positions, precision);
-for i_tx = 1 : no_tx
-    PatTx = [ Vt(i_tx,:) ; Ht(i_tx,:) ];
-    
-    % First component
-    ind = (i_tx-1)*2 + 1;
-    c(ind,:) = PatTx(1,:) .* Pt(i_tx,:);
-    
-    % Second component
-    ind = ind + 1;
-    c(ind,:) = PatTx(2,:) .* Pt(i_tx,:);
-end
-
-% Apply antenna coupling
-c = reshape( c , 2 , no_tx , no_positions );
-
-n_tx = size(Ct,2);
-coeff = zeros( 2 , n_tx , no_positions, precision);
-if all(size(Ct) == [ n_tx , n_tx ]) && ...
-        all(all( abs( Ct - eye(n_tx)) < 1e-10 ))
-    
-    % Identity matrix, no oupling
-    coeff = c;
-    
-elseif all(size(Ct) == [ n_tx , n_tx ]) && ...
-        all(all( abs( Ct - diag(diag(Ct)) ) < 1e-10 ))
-    
-    % The tx has a diagonal matrix
-    for i_tx = 1 : n_tx
-        coeff( :,i_tx,: ) = c(:,i_tx,:) .* Ct( i_tx,i_tx );
-    end
-    
-else
-    % The tx has no diagonal matrix
-    for i_tx_in = 1 : no_tx
-        for i_tx_out = 1 : size(Ct,2)
-            coeff( :,i_tx_out,: ) = coeff( :,i_tx_out,: ) + c(:,i_tx_in,:) .* Ct(i_tx_in,i_tx_out );
-        end
-    end
-end
-
-pat = permute( coeff , [3,2,1] ); % Map, Tx, Rx
+% Call quadriga-lib library function
+[ Vr,Vi,Hr,Hi ] = quadriga_lib.arrayant_combine_pattern( real(h_qd_arrayant.Fa), imag(h_qd_arrayant.Fa), ...
+        real(h_qd_arrayant.Fb), imag(h_qd_arrayant.Fb), ...
+        h_qd_arrayant.azimuth_grid, h_qd_arrayant.elevation_grid, ...
+        h_qd_arrayant.element_position, real(h_qd_arrayant.coupling), imag(h_qd_arrayant.coupling), center_frequency);
 
 % Write the output pattern
-h_qd_arrayant.no_elements = size( pat,2 );
-h_qd_arrayant.PFa = reshape( pat(:,:,1), no_el ,no_az , [] );
-h_qd_arrayant.PFb = reshape( pat(:,:,2), no_el ,no_az , [] );
-h_qd_arrayant.Pelement_position = zeros(3,size( pat,2 ),precision);
-h_qd_arrayant.Pcoupling = eye( h_qd_arrayant.no_elements,precision);
+no_elements = size( Vr,3 );
+h_qd_arrayant.PFa = complex( Vr, Vi );
+h_qd_arrayant.PFb = complex( Hr, Hi );
+h_qd_arrayant.Pelement_position = zeros(3, no_elements, precision);
+h_qd_arrayant.Pcoupling = eye( no_elements, precision );
 h_qd_arrayant.Pphase_diff = [];
+h_qd_arrayant.Pno_elements = no_elements;
 
 end

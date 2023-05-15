@@ -175,7 +175,7 @@ switch method
         time = ( 0 : no_snapshots_out )*sr;                       	% The snapshot times
         
         if use_linear_interpolation                                 % Interpolate the distances
-            dist = qf.interp( movement_profile(1,:), 0, movement_profile(2,:), time, [], true );
+            dist = quadriga_lib.interp( movement_profile(1,:), 0, movement_profile(2,:), time );
         else
             dist = pchip( movement_profile(1,:), movement_profile(2,:), time );
         end
@@ -208,7 +208,7 @@ switch method
         time = ( 0 : no_snapshots_out )*sr;                       	% The snapshot times
         
         if use_linear_interpolation                                 % Interpolate the distances
-            dist = qf.interp( movement_profile(1,:), 0, movement_profile(2,:), time, [], true ) - 1;
+            dist = quadriga_lib.interp( movement_profile(1,:), 0, movement_profile(2,:), time ) - 1;
         else
             dist = pchip( movement_profile(1,:), movement_profile(2,:), time );
         end
@@ -238,7 +238,7 @@ elseif update_input || nargout > 1                                      % Only i
         pos_int = zeros( 3,no_snapshots_out );
         for n = 1 : 3                                               % Interpolate the positions
             if use_linear_interpolation
-                pos_int(n,:) = qf.interp( dist_in, 0, positions(n,:), dist, [], true );
+                pos_int(n,:) = quadriga_lib.interp( dist_in, 0, positions(n,:), dist );
             else
                 pos_int(n,:) = pchip( dist_in, positions(n,:), dist );
             end
@@ -263,7 +263,7 @@ elseif update_input || nargout > 1                                      % Only i
                 val = par.( names{i_par} );
                 if ~isempty( val )
                     if use_linear_interpolation
-                        val_int = qf.interp( dist_in, 0, val, dist );
+                        val_int = quadriga_lib.interp( dist_in, 0, val, dist );
                     else
                         val_int = pchip( dist_in, val, dist );
                     end
@@ -292,7 +292,7 @@ elseif update_input || nargout > 1                                      % Only i
         if strcmp( method, 'snapshot' )
             % Update the snapshot indices
             movement_profile(2,:) = ...
-                qf.interp( movement_profile(1,[1,end]), 0, [1,no_snapshots_out], movement_profile(1,:));
+                quadriga_lib.interp( movement_profile(1,[1,end]), 0, [1,no_snapshots_out], movement_profile(1,:));
             movement_profile(2, movement_profile(2,:) > no_snapshots_out ) = no_snapshots_out;
             movement_profile(2, movement_profile(2,:) < 1 ) = 1;
         else
@@ -330,7 +330,7 @@ elseif update_input || nargout > 1                                      % Only i
             movement_profile(2,2) = no_snapshots_out;
         else % Interpolate Movement profile
             movement_profile(2,:) = ...
-                qf.interp( movement_profile(1,[1,end]), 0, [1,no_snapshots_out], movement_profile(1,:));
+                quadriga_lib.interp( movement_profile(1,[1,end]), 0, [1,no_snapshots_out], movement_profile(1,:));
         end
     end
     

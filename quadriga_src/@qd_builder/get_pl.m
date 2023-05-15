@@ -466,7 +466,7 @@ if isfield( par , 'model' )
             
             % Calculate athmospheric attenuation
             if par.usePLa
-               PLa = qf.interp( zenith_att(1,:), 0, zenith_att(2,:), CenterFrequency ) ./ sin(alpha);
+               PLa = quadriga_lib.interp( zenith_att(1,:), 0, zenith_att(2,:), CenterFrequency ) ./ sin(alpha);
             else
                PLa = zeros( 1,nP );                
             end            

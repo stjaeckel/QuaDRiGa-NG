@@ -80,7 +80,7 @@ while lp < 5000 && delta > 1e-7
     end
     
     C = rear_gain + (1 - rear_gain) * exp(-an * phi.^2);
-    xn = abs( qf.interp( phi, [], C, phi_3dB*pi/360, [], 1 ) - 0.5 );
+    xn = abs( quadriga_lib.interp( phi, [], C, phi_3dB*pi/360, [], 1 ) - 0.5 );
     %xn = abs(C(ind) - 0.5);
     
     if xn < x
@@ -114,7 +114,7 @@ while lp < 5000 && delta > 1e-7
     end
     
     D = cos(theta).^an;
-    xn = abs( qf.interp( theta, [], D, theta_3dB*pi/360, [], 1 ) - 0.5 );
+    xn = abs( quadriga_lib.interp( theta, [], D, theta_3dB*pi/360, [], 1 ) - 0.5 );
     %xn = abs(D(ind) - 0.5);
     
     if xn < x

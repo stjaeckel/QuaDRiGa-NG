@@ -156,7 +156,7 @@ if 0
     c = min( a,b );
     
     d = rand( 1,100000 );
-    e = qf.interp( cdf, 0, val, d )*25;
+    e = quadriga_lib.interp( cdf, 0, val, d )*25;
     
     bins = 0:0.01:25;
     plot( bins', [ qf.acdf( c,bins ), qf.acdf( e,bins ) ] )
@@ -175,7 +175,7 @@ for t = 1 : no_tx
 end
 
 % Use interpolation to get the desired variables
-d_2d_in = qf.interp( cdf, 0, val, randC );
+d_2d_in = quadriga_lib.interp( cdf, 0, val, randC );
 
 % Duplicate for each transmitter
 d_2d_in = o_tx * d_2d_in;

@@ -237,7 +237,7 @@ else
                 [cdfU,ii] = unique(cdf);
                 binsU = bins(ii);
                 binsU(end) = 1;
-                tmp = qf.interp( binsU, [], cdfU.', tmp );
+                tmp = quadriga_lib.interp( binsU, [], cdfU.', tmp );
                 
             end
             indoor_rx = tmp < indoor_frc;
@@ -296,7 +296,7 @@ else
         
         % Interpolate output such that the values match a Uniform distribution
         sic = size(randC);
-        randC = qf.interp( binsU, [], cdfU.', randC(:) );
+        randC = quadriga_lib.interp( binsU, [], cdfU.', randC(:) );
         randC = reshape( randC, sic );
     end
     
@@ -470,7 +470,7 @@ else
                 
                 % LOS probabilities vs. elevation angle in [%] from 3GPP TR 38.811
                 los_prob = [ 0, 0, 28.2, 33.1, 39.8, 46.8, 53.7, 61.2, 73.8, 82.0, 98.1 ];
-                p_LOS = qf.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
+                p_LOS = quadriga_lib.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
                 p_LOS = reshape( p_LOS,[],nS );
                 
                 % Get the scnario index
@@ -489,7 +489,7 @@ else
                 
                 % LOS probabilities vs. elevation angle in [%] from 3GPP TR 38.811
                 los_prob = [ 0, 0, 24.6, 38.6, 49.3, 61.3, 72.6, 80.5, 91.9, 96.8, 99.2 ];
-                p_LOS = qf.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
+                p_LOS = quadriga_lib.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
                 p_LOS = reshape( p_LOS,[],nS );
                 
                 % Get the scnario index
@@ -508,7 +508,7 @@ else
                 
                 % LOS probabilities vs. elevation angle in [%] from 3GPP TR 38.811
                 los_prob = [ 0, 0, 78.2, 86.9, 91.9, 92.9, 93.5, 94.0, 94.9, 95.2, 99.8 ];
-                p_LOS = qf.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
+                p_LOS = quadriga_lib.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
                 p_LOS = reshape( p_LOS,[],nS );
                 
                 % Get the scnario index
@@ -527,7 +527,7 @@ else
                 
                 % LOS probabilities vs. elevation angle in [%] from 3GPP TR 38.811
                 los_prob = [ 0, 0, 78.2, 86.9, 91.9, 92.9, 93.5, 94.0, 94.9, 95.2, 99.8 ];
-                p_LOS = qf.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
+                p_LOS = quadriga_lib.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
                 p_LOS = reshape( p_LOS,[],nS );
                 
                 % Get the scnario index
