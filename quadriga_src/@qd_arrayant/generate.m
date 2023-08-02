@@ -189,86 +189,98 @@ switch array_type
     case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole'}
         [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
             coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate(array_type);
-       
+
     case 'custom'
-%         [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
-%             coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate('custom', Ain, Bin, Cin );
-        
-        [ h_qd_arrayant, par ] = gen_arrayant_custom( Ain, Bin, Cin );
-        
-        
-        
+        [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
+            coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate('custom', Ain, Bin, Cin );
+
     case 'patch'
-        [ h_qd_arrayant, par ] = gen_arrayant_custom( 90, 90, 0 );
-        
+        [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
+            coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('custom', 90, 90, 0 );
+        name = 'patch';
+
     case 'parametric'
         h_qd_arrayant = gen_arrayant_parametric( Ain, Bin, Cin, Din );
-        
+
     case 'multi'
-        [ h_qd_arrayant, par ] = gen_arrayant_multi( Ain, Bin, Cin, Din, Ein  );
-        
+        [etr, eti, epr, epi, az, el] = quadriga_lib.arrayant_generate('custom', 90, 90, 0 );
+        if ~isempty(Din) && isempty(Ein)
+            etr = real(Din); eti = imag(Din); epr = zeros(size(etr)); epi = epr;
+        elseif isempty(Din) && ~isempty(Ein)
+            epr = real(Ein); epi = imag(Ein); etr = zeros(size(epr)); eti = etr;
+        elseif ~isempty(Din) && ~isempty(Ein)
+            etr = real(Din); eti = imag(Din); epr = real(Ein); epi = imag(Ein);
+        end
+        [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
+            coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('3gpp', Ain, 1, [], 4, Cin, Bin, 1,1,0,0, etr, eti, epr, epi, az, el );
+        name = 'multi';
+
     case '3gpp-macro'
         h_qd_arrayant = gen_arrayant_3gpp_macro( Ain, Bin, Cin, Din );
-        
+
     case '3gpp'
         h_qd_arrayant = gen_arrayant_3gpp( Ain, Bin, Cin, Din, Ein );
-        
+
     case '3gpp-3d'
-        h_qd_arrayant = gen_arrayant_3gpp_3d( Ain, Bin, Cin, Din, Ein, Fin );
-        
+        [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
+            coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('3gpp', Ain, Bin, Cin, Din, Ein, Fin );
+        name = '3gpp-3d';
+
     case { '3gpp-mmw', '3gpp-nr' }
-        h_qd_arrayant = gen_arrayant_3gpp_nr( Ain, Bin, Cin, Din, Ein, Fin, Gin, Hin, Iin, Jin );
-        
+        [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
+            coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('3gpp', Ain, Bin, Cin, Din, Ein, Fin, Gin, Hin, Iin, Jin );
+        name = array_type;
+
     case 'xpol'
         h_qd_arrayant = gen_arrayant_omni;
         h_qd_arrayant.copy_element(1,2);
         h_qd_arrayant.Fa(:,:,2) = 0;
         h_qd_arrayant.Fb(:,:,2) = 1;
-        
+
     case 'rhcp-dipole'
         h_qd_arrayant = qd_arrayant('dipole');
         copy_element( h_qd_arrayant,1,2 );
         rotate_pattern( h_qd_arrayant,90,'x',2 );
         h_qd_arrayant.coupling = 1/sqrt(2) * [1;-1j];
-        
+
     case 'lhcp-dipole'
         h_qd_arrayant = qd_arrayant.generate('rhcp-dipole');
         h_qd_arrayant.coupling = 1/sqrt(2) * [1;1j];
-        
+
     case 'lhcp-rhcp-dipole'
         h_qd_arrayant = qd_arrayant.generate('rhcp-dipole');
         h_qd_arrayant.coupling = 1/sqrt(2) * [1 1;1j -1j];
-        
+
     case 'ula2'
         h_qd_arrayant = gen_arrayant_omni;
         h_qd_arrayant.no_elements = 2;
         h_qd_arrayant.element_position(2,:) = [-0.05 0.05];
-        
+
     case 'ula4'
         h_qd_arrayant = gen_arrayant_omni;
         h_qd_arrayant.no_elements = 4;
         h_qd_arrayant.element_position(2,:) = -0.15 :0.1: 0.15;
-        
+
     case 'ula8'
         h_qd_arrayant = gen_arrayant_omni;
         h_qd_arrayant.no_elements = 8;
         h_qd_arrayant.element_position(2,:) = -0.35 :0.1: 0.35;
-        
+
     case 'vehicular'
         h_qd_arrayant = gen_arrayant_vehicular( Ain, Bin, Cin );
-        
+
     case 'parabolic'
         h_qd_arrayant = gen_arrayant_parabolic( Ain, Bin, Cin, Din, Ein, Fin, Gin );
-        
+
     case 'testarray'
         h_qd_arrayant = gen_arrayant_testarray( Ain );
-        
+
     otherwise
         error('QuaDRiGa:qd_arrayant:generate',['??? Array type "',array_type,'" is not supported.']);
 end
 
 switch array_type
-    case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole'}
+    case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole','custom','patch','3gpp-3d','3gpp-mmw', '3gpp-nr', 'multi'}
         h_qd_arrayant = qd_arrayant([]);
         h_qd_arrayant.azimuth_grid = azimuth_grid;
         h_qd_arrayant.elevation_grid = elevation_grid;
