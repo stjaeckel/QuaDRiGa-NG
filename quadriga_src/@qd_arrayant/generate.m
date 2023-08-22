@@ -186,7 +186,7 @@ end
 
 array_type = lower( array_type );
 switch array_type
-    case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole'}
+    case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole', 'xpol'}
         [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
             coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate(array_type);
 
@@ -231,12 +231,6 @@ switch array_type
             coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('3gpp', Ain, Bin, Cin, Din, Ein, Fin, Gin, Hin, Iin, Jin );
         name = array_type;
 
-    case 'xpol'
-        h_qd_arrayant = gen_arrayant_omni;
-        h_qd_arrayant.copy_element(1,2);
-        h_qd_arrayant.Fa(:,:,2) = 0;
-        h_qd_arrayant.Fb(:,:,2) = 1;
-
     case 'rhcp-dipole'
         h_qd_arrayant = qd_arrayant('dipole');
         copy_element( h_qd_arrayant,1,2 );
@@ -280,7 +274,7 @@ switch array_type
 end
 
 switch array_type
-    case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole','custom','patch','3gpp-3d','3gpp-mmw', '3gpp-nr', 'multi'}
+    case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole', 'xpol', 'custom', 'patch', '3gpp-3d', '3gpp-mmw', '3gpp-nr', 'multi'}
         h_qd_arrayant = qd_arrayant([]);
         h_qd_arrayant.azimuth_grid = azimuth_grid;
         h_qd_arrayant.elevation_grid = elevation_grid;
