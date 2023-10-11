@@ -211,7 +211,7 @@ else
 
         % Extract RX antenna data
         if ~qf.eqo( h_builder.rx_array(1,i_mobile), rx_reference )
-            tx_reference = h_builder.rx_array(1,i_mobile);
+            rx_reference = h_builder.rx_array(1,i_mobile);
             if use_single_precision
                 rx_eth_re = single( real( h_builder.rx_array(1,i_mobile).Fa ));
                 rx_eth_im = single( imag( h_builder.rx_array(1,i_mobile).Fa ));
