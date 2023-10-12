@@ -313,8 +313,6 @@ methods
         if ~( all(size(value) == [1 1]) && isnumeric(value) ...
                 && isreal(value) && mod(value,1)==0 && value >= 0 )
             error('??? "initial_position" must be integer and >= 0')
-        elseif value > h_channel(1,1).no_snap
-            error('??? "initial_position" must not exceed the number of snapshots')
         end
         h_channel(1,1).Pinitial_position = value;
     end
@@ -327,8 +325,6 @@ methods
                 error('QuaDRiGa:Channel:wrongInputValue','??? "rx_position" must consist of real numbers')
             elseif ~all( size(value,1) == 3 )
                 error('QuaDRiGa:Channel:wrongInputValue','??? "rx_position" must have three rows.')
-            elseif size( value,2 ) ~= h_channel(1,1).no_snap
-                error('QuaDRiGa:Channel:wrongInputValue','??? "rx_position" must match the number of snapshots.')
             end
             h_channel(1,1).Prx_position = value;
         end
@@ -356,13 +352,14 @@ methods
 end
 
 methods(Static)
-    [ h_channel, dims ] = hdf5_load( varargin )
+    [ h_channel, layout, has_data ] = hdf5_read( fn, I1, I2, I3, I4, IS )
+    % [ h_channel, dims ] = hdf5_load( varargin )
     [ h_channel, dims ] = mat_load( filename, varargin )
-    [ h_channel, snr, pdp ] = import_meas_data( Y, B, L_max, usage, noise_limit, delay_limit, pilot_grid, verbose, show_pdp )
-    h_channel = fr2cir( freq_response, bandwidth, no_path, min_pow, pilot_grid, delay_range, use_gpu, no_chunk, verbose  )
+    % [ h_channel, snr, pdp ] = import_meas_data( Y, B, L_max, usage, noise_limit, delay_limit, pilot_grid, verbose, show_pdp )
+    % h_channel = fr2cir( freq_response, bandwidth, no_path, min_pow, pilot_grid, delay_range, use_gpu, no_chunk, verbose  )
     varargout = call_private_fcn( functionName, varargin )
-    h_channel = process_data( Y, h_arrayant, no_path, no_subpath, search_range, tx_pos, rx_pos, bandwidth, pilot_grid, no_chunk, verbose, plot_title, plot_filename, plot_ylim, plot_PDPgain )
-    h_channel = process_data2( Y, h_arrayant, no_path, no_subpath, search_range, tx_pos, rx_pos, bandwidth, pilot_grid, no_chunk, verbose, plot_title, plot_filename, plot_ylim, plot_PDPgain )
+    % h_channel = process_data( Y, h_arrayant, no_path, no_subpath, search_range, tx_pos, rx_pos, bandwidth, pilot_grid, no_chunk, verbose, plot_title, plot_filename, plot_ylim, plot_PDPgain )
+    % h_channel = process_data2( Y, h_arrayant, no_path, no_subpath, search_range, tx_pos, rx_pos, bandwidth, pilot_grid, no_chunk, verbose, plot_title, plot_filename, plot_ylim, plot_PDPgain )
 end
 
 end

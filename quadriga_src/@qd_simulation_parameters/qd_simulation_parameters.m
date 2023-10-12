@@ -101,7 +101,7 @@ end
 
 properties(Constant)
     % Version number of the current QuaDRiGa release (constant)
-    version = '3.0.5-0';
+    version = '3.0.6-0';
 end
 
 properties(Dependent,SetAccess=protected)
