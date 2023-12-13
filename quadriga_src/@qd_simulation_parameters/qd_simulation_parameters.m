@@ -5,7 +5,7 @@ classdef qd_simulation_parameters < handle
 % This class controls the simulation options and calculates constants for other classes.
 %
 % 
-% QuaDRiGa Copyright (C) 2011-2020
+% QuaDRiGa Copyright (C) 2011-2023
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.

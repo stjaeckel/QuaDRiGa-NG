@@ -1,4 +1,4 @@
-function h_channel = get_channels( h_builder, use_single_precision, vb_dots )
+function h_channel = get_channels( h_builder, use_single_precision, vb_dots, only_coeff )
 %GET_CHANNELS Calculate the channel coefficients
 %
 % Calling object:
@@ -26,18 +26,31 @@ function h_channel = get_channels( h_builder, use_single_precision, vb_dots )
 % The QuaDRiGa Channel Model. You should have received a copy of the Software License for The
 % QuaDRiGa Channel Model along with QuaDRiGa. If not, see <http://quadriga-channel-model.de/>.
 
+if ~exist( 'vb_dots','var' ) || isempty( vb_dots )
+    vb_dots = [];
+end
+
 if ~exist( 'use_single_precision','var' ) || isempty( use_single_precision )
     use_single_precision = false;
 else
     use_single_precision = logical( use_single_precision );
 end
 
+if ~exist( 'only_coeff','var' ) || isempty( only_coeff )
+    only_coeff = 0;
+elseif numel(h_builder) > 1
+    error('QuaDRiGa:qd_builder:get_channels','Coefficient only output does not support dq_builder arrays.');
+end
+
 % Array indexing is needed for Octave
 verbose = h_builder(1,1,1,1).simpar(1,1).show_progress_bars;
-if verbose && nargin < 3
+if verbose && isempty( vb_dots )
     fprintf('Channels     [');
     vb_dots = 50;
     tStart = clock;
+    show_progress = true;
+else
+    show_progress = false;
 end
 m0=0;
 
@@ -64,8 +77,8 @@ if numel(h_builder) > 1
     if verbose
         vb_dots = init_progress_dots(vb_dots);
     end
-
-    % Call each builder in the builder array and concatinate the output channels
+    
+    % Call each builder in the builder array and concatenate the output channels
     cnt = 1;
     h_channel = qd_channel;
     for i_cb = 1 : numel(h_builder)
@@ -83,14 +96,14 @@ else
 
     % Check if we have a single-frequency builder
     if numel( h_builder.simpar(1,1).center_frequency ) > 1
-        error('QuaDRiGa:qd_builder:get_channels','get_channels only works for single-freqeuncy simulations.');
+        error('QuaDRiGa:qd_builder:get_channels','get_channels only works for single-frequency simulations.');
     end
     center_frequency = h_builder.simpar(1,1).center_frequency;
     wave_no = 2*pi/h_builder.simpar(1,1).wavelength;
 
     % Check if SSF parameters have been generated already
     if isempty( h_builder.taus )
-        error('QuaDRiGa:qd_builder:get_channels','Small-scale fading parametes have not been generated yet.');
+        error('QuaDRiGa:qd_builder:get_channels','Small-scale fading parameters have not been generated yet.');
     end
 
     % Get the precision string
@@ -99,7 +112,7 @@ else
     else
         precision = 'double';
     end
-
+    
     % Check if the builder is a dual-mobility builder and that the inputs are correctly formatted
     dual_mobility = h_builder.dual_mobility;
     if dual_mobility == -1
@@ -111,17 +124,25 @@ else
 
     % These variables are often needed. Pre-computing them saves a lot of time
     use_absolute_delays = h_builder.simpar(1,1).use_absolute_delays;
-    use_3GPP_baseline = h_builder.simpar(1,1).use_3GPP_baseline; % logical
-    use_ground_reflection = h_builder.check_los > 1.5; % logical
-    if use_3GPP_baseline && use_ground_reflection
-        % For 3GPP-Baseline, GR is just another path. No need for GR-drfting
+    if only_coeff
+        if any( h_builder.NumSubPaths > 1 )
+            error('QuaDRiGa:qd_builder:get_channels','Sub-paths are not supported in coefficients-only mode.');
+        end
+        use_3GPP_baseline = false;
         use_ground_reflection = false;
+    else
+        use_3GPP_baseline = h_builder.simpar(1,1).use_3GPP_baseline; % logical
+        use_ground_reflection = h_builder.check_los > 1.5; % logical
+        if use_3GPP_baseline && use_ground_reflection
+            % For 3GPP-Baseline, GR is just another path. No need for GR-drifting
+            use_ground_reflection = false;
+        end
     end
 
     % If Laplacian PAS is used, the intra-cluster angles are increased by a factor of sqrt(2). To
-    % compensate, the intra-cluster powers must be adjusted. This is done by a weighting the path
-    % amplitudes, depending on the number of subpath per cluster. The weigths are set here.
-    if strcmp( h_builder.scenpar.SubpathMethod, 'Laplacian' )
+    % compensate, the intra-cluster powers must be adjusted. This is done by weighting the path
+    % amplitudes, depending on the number of subpaths per cluster. The weights are set here.
+    if ~only_coeff && strcmp( h_builder.scenpar.SubpathMethod, 'Laplacian' )
         use_laplacian_pas = true;
         laplacian_weights = {1, [1.18 0.78], ...
             [0.60 1.05 1.24], ...
@@ -147,7 +168,13 @@ else
     end
 
     % Create new channel object
-    h_channel = qd_channel;
+    if only_coeff
+        h_channel = zeros(h_builder.rx_array(1,1).no_elements, ...
+            h_builder.tx_array(1,1).no_elements, ...
+            h_builder.NumClusters, h_builder.no_rx_positions, 'single');
+    else
+        h_channel = qd_channel;
+    end
 
     % Reference to the current antenna objects
     tx_reference = qd_arrayant([]);
@@ -599,7 +626,7 @@ else
 end
 
 % Fix for octave
-if numel( h_channel ) == 1
+if ~only_coeff && numel( h_channel ) == 1
     h_channel = h_channel(1,1);
 end
 
