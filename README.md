@@ -1,6 +1,6 @@
 # QuaDRiGa-NG
 
-This is a fork of the original QuaDRiGa repository (v2.6.1) hosted by the Fraunhofer HHI (https://github.com/fraunhoferhhi/QuaDRiGa). 
+This is a fork of the original QuaDRiGa repository (v2.8.1) hosted by the Fraunhofer HHI (https://github.com/fraunhoferhhi/QuaDRiGa). 
 
 QuaDRiGa, short for QUAsi Deterministic RadIo channel GenerAtor, is used for generating realistic radio channel impulse responses for system-level simulations of mobile radio networks. These simulations are used to determine the performance of new digital-radio technologies in order to provide an objective indicator for the standardization process in bodies like the third generation partnership program 3GPP.
 
@@ -8,20 +8,20 @@ I, Stephan Jaeckel, PhD, wrote most of the ~80.000 lines of code during my time 
 
 For questions, bug reports, feature request, etc. please contact me at quadriga@sjc-wireless.com, through GitHub or LinkedIn (https://www.linkedin.com/in/stephan-jaeckel-phd-a66990a4). 
 
-QuaDRiGa v2.6.1 is released under the
+QuaDRiGa v2.8.1 is released under the
 Software License for The QuaDRiGa Channel Model  
 © Copyright 2011 - 2021 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V., All rights reserved.
 
 ## Current Version
 
-The current experimental version requires the ``quadriga-lib`` library to work. This library implements some core functionality in C++/MEX for faster execution and interfaces for future projects. The library can be found here: https://github.com/stjaeckel/quadriga-lib. After installing the library, calling ``qd_simulation_parameters`` on the MATLAB/Octave command prompt should show the QuaDRiGa version 3.0.0 and ``quadriga-lib``-version 0.1.0. If it shows an error, you might need to recompile the library.
+The current experimental version requires the ``quadriga-lib`` library to work. This library implements some core functionality in C++/MEX for faster execution and interfaces for future projects. The library can be found here: https://github.com/stjaeckel/quadriga-lib. After installing the library, calling ``qd_simulation_parameters`` on the MATLAB/Octave command prompt should show the QuaDRiGa version 3.0.0 and ``quadriga-lib``-version 0.1.10. If it shows an error, you might need to recompile the library.
 
 List of changes:
 * v3.0.1 - Replacing the ``qd_array.interpolate`` method with the one provided by the ``quadriga-lib`` library improves performance by up to 70% on multi-core CPUs
 * v3.0.2 - Bugfix: Spheric linear interpolation in "qd_track.interpolate" could lead to unexpected orientation changes
 * v3.0.3 - Update: Replaced read and write functions for QDANT-Files with the ones provided by ``quadriga-lib``
 * v3.0.6 - Added HDF5 Support
-
+* v3.1.0 - Updated to QuaDRiGa 2.8.1
 
 ## Future plans
 
