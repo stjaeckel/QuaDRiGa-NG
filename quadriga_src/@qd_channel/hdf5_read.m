@@ -231,7 +231,8 @@ if u1 || I1(1) ~= 0
                     [ h_channel(ox,oy,oz,ow).par, rx_position, tx_position,...
                         coeff_re, coeff_im, delay, center_frequency, h_channel(ox,oy,oz,ow).name,...
                         initial_position, path_gain, path_length, path_polarization, path_angles,...
-                        path_coord, rx_orientation, tx_orientation ] = quadriga_lib.hdf5_read_channel( fn, [ix,iy,iz,iw], IS );
+                        fbs_pos, lbs_pos, no_interact, interact_coord, rx_orientation, tx_orientation ] = ...
+                        quadriga_lib.hdf5_read_channel( fn, [ix,iy,iz,iw], IS );
 
                     if ~isempty(coeff_re) && ~isempty(coeff_im)
                         h_channel(ox,oy,oz,ow).coeff = complex(coeff_re, coeff_im);
@@ -261,13 +262,22 @@ if u1 || I1(1) ~= 0
                     if ~isempty(path_angles)
                         h_channel(ox,oy,oz,ow).par.path_angles = path_angles;
                     end
-                    if ~isempty(path_coord)
-                        h_channel(ox,oy,oz,ow).par.path_coord = path_coord;
+                    if ~isempty(fbs_pos)
+                        h_channel(ox,oy,oz,ow).par.fbs_pos = fbs_pos;
                     end
-                    if ~isempty(rx_orientation)
+                    if ~isempty(lbs_pos)
+                        h_channel(ox,oy,oz,ow).par.lbs_pos = lbs_pos;
+                    end
+                    if ~isempty(no_interact)
+                        h_channel(ox,oy,oz,ow).par.no_interact = no_interact;
+                    end
+                    if ~isempty(interact_coord)
+                        h_channel(ox,oy,oz,ow).par.interact_coord = interact_coord;
+                    end
+                    if numel(rx_orientation)>3 || any(rx_orientation ~= 0)
                         h_channel(ox,oy,oz,ow).par.rx_orientation = rx_orientation;
                     end
-                    if ~isempty(tx_orientation)
+                    if numel(tx_orientation)>3 || any(tx_orientation ~= 0)
                         h_channel(ox,oy,oz,ow).par.tx_orientation = tx_orientation;
                     end
                 end
