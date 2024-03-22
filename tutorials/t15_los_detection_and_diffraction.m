@@ -39,8 +39,6 @@ s.center_frequency = 3.7e9;                             % Center frequencies in 
 s.use_absolute_delays = 1;                              % Include delay of the LOS path
 s.sample_density = 1.1;                                 % Minimum possible sample density
 
-disp( ['GPU = ', num2str(qd_mesh.has_gpu)] );           % Check if we have GPU acceleration
-
 %% Importing 3D models and defining the simulation layout
 % We begin by setting up our simulation layout. This includes a BS equipped with single-element
 % patch antenna situated in an urban area. The configuration mimics a typical urban deployment
@@ -57,7 +55,7 @@ l.rx_position = [ 15 ; 415 ; 1.2 ];                     % MT position
 l.tx_array = qd_arrayant( 'patch' );                    % Simple patch antenna @ BS
 l.tx_track.orientation(3) = pi/2;                       % Facing north
 
-obj_fn = fullfile('madrid_grid','madrid_grid.obj');     % Location and name of the OBJ file
+obj_fn = fullfile('madrid_grid','madrid_grid_tri.obj'); % Location and name of the OBJ file
 m = qd_mesh;                                            % Class for handling 3D model data
 m.read_obj( obj_fn );                                   % Load 3D model
 
@@ -153,7 +151,7 @@ c = b.get_los_channels('single', 'coeff');
 p_nlos = reshape( sum(abs(c).^2, 2), numel(y), numel(x) );
 
 % Calculate the diffraction gain
-gain_diff = diff_trans(m, l.tx_position, rx_pos, s.center_frequency, 37, 4, 1);
+gain_diff = diff_trans(m, l.tx_position, rx_pos, s.center_frequency, 4 );
 gain_diff = reshape( gain_diff, numel(y), numel(x) );
 
 % Combine the power values using the propagation state

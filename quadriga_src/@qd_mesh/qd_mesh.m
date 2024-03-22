@@ -8,7 +8,7 @@ classdef qd_mesh  < handle
 %   a set of triangles that point to the vertices it uses. 
 %
 %
-% QuaDRiGa Copyright (C) 2011-2019
+% QuaDRiGa Copyright (C) 2011-2023
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -70,10 +70,11 @@ properties(Dependent)
     mtl_color
     
     % Electric properties of the material
-    %   Row 1: Real part of the relative permittivity (default 1)
-    %   Row 2: Imaginary part of the relative permittivity (default 0)
-    %   Row 3: Real part of the relative permeability  (default 1)
-    %   Row 4: Imaginary part of the relative permeability (default 0)
+    %   Row 1: Real part of relative permittivity at f = 1 GHz (a)
+    %   Row 2: Frequency dependence of rel. permittivity (b) such that ϵ = a · f^b
+    %   Row 3: Conductivity at f = 1 GHz (c)
+    %   Row 4: Frequency dependence of conductivity (d) such that σ = c· f^d
+    %   Row 5: Fixed attenuation in dB applied to each transition
     mtl_prop
     
     % Material thickness
@@ -111,7 +112,7 @@ properties(Access=private)
    Pobj_att_par = [ 100; 0; 0; 0; 100 ];
    Pmtl_name = {'Default'};
    Pmtl_color = [ 0.8; 0.8; 0.8 ];
-   Pmtl_prop = [ 2 ; -0.5 ; 1 ; 0 ];
+   Pmtl_prop = [ 1 ; 0 ; 0 ; 0 ; 0 ];
    Pmtl_thickness = 0.1;
 end
 
@@ -166,25 +167,6 @@ methods
     function out = get.no_mtl( h_mesh )
        out = size( h_mesh.Pmtl_name ,2 );
     end
-    % function out = get.rtopterix_lib( ~ )
-    %     out = '';
-    %     try %#ok
-    %         rtopterix_path = path;                              % Parse files in config-folder
-    %         if isempty( regexp( rtopterix_path,';' ) ) %#ok      % Linux separates path entries by ":"
-    %             rtopterix_path = regexp(rtopterix_path, ':?([^:]*rtopterix)', 'tokens'); % Linux
-    %         else                                                % Windows separated path entries by ";"
-    %             rtopterix_path = regexp(rtopterix_path, ':?([^;]*rtopterix)', 'tokens'); % Windows
-    %         end
-    %         if ~isempty( rtopterix_path )
-    %             lib_path = rtopterix_path{1}{1};
-    %             command = [ fullfile( lib_path,'build','rtopterix' ),' --help' ];
-    %             [~,cmdout] = system(command);
-    %             if strcmp(cmdout(1:17),'rtopterix version')
-    %                 out = lib_path;
-    %             end
-    %         end
-    %     end
-    % end
     function m = get.mesh( h_mesh )
         m = reshape( h_mesh(1,1).Pvert(:,h_mesh(1,1).Pface(:)), 9,[] )';
     end
@@ -243,7 +225,7 @@ methods
             end
             h_mesh(1,1).Pmtl_name = new_name;
             h_mesh(1,1).Pmtl_color = [ h_mesh(1,1).Pmtl_color, repmat([0.8;0.8;0.8], 1, value-no_exist) ];
-            h_mesh(1,1).Pmtl_prop = [ h_mesh(1,1).Pmtl_prop, repmat([2;-0.5;1;0], 1, value-no_exist) ];
+            h_mesh(1,1).Pmtl_prop = [ h_mesh(1,1).Pmtl_prop, repmat([1;0;0;0;0], 1, value-no_exist) ];
             h_mesh(1,1).Pmtl_thickness = [ h_mesh(1,1).Pmtl_thickness, repmat(0.1, 1, value-no_exist) ];
         end
     end
@@ -378,7 +360,7 @@ methods
     end
     
     function set.mtl_prop(h_mesh,value)
-        if size( value,1 ) ~= 4
+        if size( value,1 ) ~= 5
             error('QuaDRiGa:qd_mesh','??? "mtl_prop" must have 4 rows.')
         end
         no_value = size(value,2);
