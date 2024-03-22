@@ -52,14 +52,18 @@ function zi = interp( x, y, z, xc, yc, use_double )
 % The QuaDRiGa Channel Model. You should have received a copy of the Software License for The
 % QuaDRiGa Channel Model along with QuaDRiGa. If not, see <http://quadriga-channel-model.de/>.
 
+if ~exist( 'yc','var' )
+    yc = [];
+end
+
 if exist( 'use_double','var' )
     if use_double
-        zi = quadrig_lib.interp( x, y, double(z), xc, yc );
+        zi = quadriga_lib.interp( x, y, double(z), xc, yc );
     else
-        zi = quadrig_lib.interp( x, y, single(z), xc, yc );
+        zi = quadriga_lib.interp( x, y, single(z), xc, yc );
     end
 else % Auto detect based on type of "z"
-    zi = quadrig_lib.interp( x, y, z, xc, yc, use_double );
+    zi = quadriga_lib.interp( x, y, z, xc, yc );
 end
 
 end
