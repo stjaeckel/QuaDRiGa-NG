@@ -229,10 +229,10 @@ for n = 1 : size( mpc,1 )                                   % Interpolate channe
             end
             
             if use_linear_interpolation
-                cfA  = quadriga_lib.interp( pin, 0, cfIa, po, [], true );
+                cfA  = quadriga_lib.interp( pin, 0, cfIa, po, [] );
                 cfIp = permute( angle( cfI ), [2,3,1] );
                 cfP  = permute( qf.slerp( pin, cfIp, 0, po, true ), [3,1,2] );
-                dlO  = quadriga_lib.interp( pin, 0, dlI, po, [], true );
+                dlO  = quadriga_lib.interp( pin, 0, dlI, po, [] );
             else
                 cfA  = permute( pchip( pin, permute( cfIa,[3,2,1] ), po ) ,[3,2,1] );
                 cfIp = permute( angle( cfI ), [2,3,1] );
@@ -262,7 +262,7 @@ c.individual_delays = individual_delays;
 po = mean(dist,2);
 if use_linear_interpolation
     tmp = permute(h_channel.rx_position,[3,2,1]);
-    tmp = quadriga_lib.interp( dist_snap, 0, tmp , po, [], true );        % Use double
+    tmp = quadriga_lib.interp( dist_snap, 0, tmp , po, [] );        % Use double
     c.rx_position = permute( tmp,[3,2,1]);
 else
     c.rx_position = pchip( dist_snap, h_channel.rx_position, po );
@@ -270,7 +270,7 @@ end
 if size(h_channel.tx_position,2) > 1                            % Dual Mobility
     if use_linear_interpolation
         tmp = permute(h_channel.tx_position,[3,2,1]);
-        tmp = quadriga_lib.interp( dist_snap, 0, tmp , po, [], true );    % Use double
+        tmp = quadriga_lib.interp( dist_snap, 0, tmp , po, [] );    % Use double
         c.tx_position = permute( tmp,[3,2,1]);
     else
         c.tx_position = pchip( dist_snap, h_channel.tx_position, po );
