@@ -6,7 +6,7 @@ function h_figures = visualize( h_qd_arrayant, i_element )
 %
 % Input:
 %   i_element
-%   The element indices for which the plot os created. If no element index are given, a plot is
+%   The element indices for which the plot is created. If no element index are given, a plot is
 %   created for each element in the array. 
 %
 % Output:
@@ -30,6 +30,7 @@ function h_figures = visualize( h_qd_arrayant, i_element )
 % You can redistribute it and/or modify QuaDRiGa under the terms of the Software License for 
 % The QuaDRiGa Channel Model. You should have received a copy of the Software License for The
 % QuaDRiGa Channel Model along with QuaDRiGa. If not, see <http://quadriga-channel-model.de/>. 
+
 if numel( h_qd_arrayant ) > 1 
    error('QuaDRiGa:qd_arrayant:visualize','visualize not definded for object arrays.');
 else
