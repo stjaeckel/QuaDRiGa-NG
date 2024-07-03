@@ -1,4 +1,4 @@
-function freq_response = fr( h_channel, bandwidth, carriers, i_snapshot, use_gpu )
+function freq_response = fr( h_channel, bandwidth, carriers, i_snapshot )
 %FR Transforms the channel into frequency domain and returns the frequency response
 %
 % Calling object:
@@ -26,10 +26,6 @@ function freq_response = fr( h_channel, bandwidth, carriers, i_snapshot, use_gpu
 %   The snapshot numbers for which the frequency response should be calculated. By default, i.e. if
 %   'i_snapshot' is not given, all snapshots are processed.
 %
-%   use_gpu
-%   Enables or disables (default) GPU acceleration. This requires a compatible GPU and the
-%   "Parallel Computing Toolbox" for MATLAB. In Octave, GPU acceleration is available through the
-%   "ocl"-package (https://octave.sourceforge.io/ocl).
 %
 % Output:
 %   freq_response
@@ -37,7 +33,7 @@ function freq_response = fr( h_channel, bandwidth, carriers, i_snapshot, use_gpu
 %   the 4-D tensor are: [ Rx-Antenna , Tx-Antenna , Carrier-Index , Snapshot ]
 %
 %
-% QuaDRiGa Copyright (C) 2011-2021
+% QuaDRiGa Copyright (C) 2011-2024
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -71,19 +67,12 @@ else
     check = true;
 end
     
-if ~exist( 'use_gpu','var' )
-    use_gpu = qd_simulation_parameters.has_gpu;
-elseif logical( use_gpu ) &&  ~qd_simulation_parameters.has_gpu
-    use_gpu = 0;
-end
-
 if ~( size(bandwidth,1) == 1 && isnumeric(bandwidth) && all(size(bandwidth) ==...
         [1 1]) && min(bandwidth) > 0 )
     error('??? The bandwidth "bandwidth" must be scalar and > 0')
 end
 
 if isnumeric(carriers) && isreal(carriers)
-    
     if all(size(carriers) == [1 1]) && mod(carriers,1)==0 && carriers>0
         pilot_grid = ( 0:carriers-1 )/carriers;
         
@@ -93,8 +82,6 @@ if isnumeric(carriers) && isreal(carriers)
         else
             pilot_grid = carriers;
         end
-        carriers = numel(pilot_grid);
-        
     else
         error('??? Invalid input for "carriers".')
     end
@@ -111,65 +98,8 @@ if check
     end
 end
 
-% Get the dimension of the channel tensor
-n_rx = h_channel.no_rxant;
-n_tx = h_channel.no_txant;
-n_i_snapshots = numel(i_snapshot);
-n_taps = h_channel.no_path;
+[ hmat_re, hmat_im ] = quadriga_lib.baseband_freq_response( real(h_channel.Pcoeff), imag(h_channel.Pcoeff), ...
+    h_channel.delay, pilot_grid, bandwidth, i_snapshot );
 
-% Preallocate some memory and rearrange coefficients
-freq_response = zeros(n_i_snapshots * n_rx * n_tx, carriers); 
-if h_channel.individual_delays
-    m = reshape(permute(h_channel.delay(:, :, :, i_snapshot)*bandwidth,...
-        [ 4 1 2 3 ]), n_i_snapshots*n_rx*n_tx, n_taps);
-else
-    m = repmat(h_channel.delay(:, i_snapshot)'*bandwidth, n_rx*n_tx, 1);
-end
-c = reshape(permute(h_channel.coeff(:, :, :, i_snapshot), [ 4 1 2 3 ]),...
-    n_i_snapshots*n_rx*n_tx, n_taps);
-
-% The arguments of the exponential function
-v  = -2 * pi * 1j * pilot_grid;
-
-% Load all variables to GPU memory
-if use_gpu == 1
-    freq_response(1) = freq_response(1) + 1j*4e-324;
-    m(1) = m(1) + 1j*4e-324;
-    c(1) = c(1) + 1j*4e-324;
-    freq_response = gpuArray( freq_response );
-    m = gpuArray( m );
-    c = gpuArray( c );
-    v = gpuArray( v );
-elseif use_gpu == 2
-    freq_response = single( freq_response );
-    m = single( m );
-    c = single( c );
-    v = single( v );
-    freq_response(1) = freq_response(1) + 1j*1e-45;
-    m(1) = m(1) + 1j*1e-45;
-    c(1) = c(1) + 1j*1e-45;
-    freq_response = gpuArray( freq_response );
-    m = gpuArray( m );
-    c = gpuArray( c );
-    v = gpuArray( v );
-end
-
-% The main calculation
-for i_tap = 1 : n_taps
-    if use_gpu
-        freq_response = freq_response + repmat( c(:,i_tap), 1, carriers ) .* exp( m(:,i_tap) * v);
-    else
-        freq_response = freq_response + bsxfun(@times, exp( m(:,i_tap) * v), c(:,i_tap) );
-    end
-end
-
-% Retrieve data from GPU memory
-if use_gpu
-    freq_response = double( gather( freq_response ) );
-end
-
-% Reorder the output dimensions
-freq_response = reshape(freq_response, n_i_snapshots, n_rx, n_tx, carriers);
-freq_response = permute(freq_response, [ 2 3 4 1 ]);
-
+freq_response = complex(hmat_re, hmat_im);
 end
