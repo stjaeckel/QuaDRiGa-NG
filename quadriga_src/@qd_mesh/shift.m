@@ -94,5 +94,8 @@ switch axis
 end
 h_mesh.vert = vert;
 
+% Reset sib-mesh index
+h_mesh.Psub_mesh_index = [];
+
 end
 

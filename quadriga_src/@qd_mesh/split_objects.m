@@ -111,6 +111,9 @@ end
 h_mesh.obj_name = obj_name;
 h_mesh.obj_index = obj_index;
 
+% Reset sib-mesh index
+h_mesh.Psub_mesh_index = [];
+
 if verbose
     fprintf('] %5.0f seconds\n',round( etime(clock, tStart) ));
 end

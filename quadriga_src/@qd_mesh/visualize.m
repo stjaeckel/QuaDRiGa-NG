@@ -1,4 +1,4 @@
-function han = visualize( h_mesh, obj_id, create_new_figure )
+function han = visualize( h_mesh, obj_id, create_new_figure, show_sub_meshes )
 %VISUALIZE Plots the polygon mesh
 %
 % Calling object:
@@ -17,12 +17,15 @@ function han = visualize( h_mesh, obj_id, create_new_figure )
 %   If set to 0, no new figure is created, but the layout is plotted in the currently active
 %   figure. Default value: 1 (create new figure)
 %
+%   show_sub_meshes
+%   If set to 1, visualize the mesh segments and bounding boxes.
+%
 % Output:
 %   han
 %   The figure handle
 %
 %
-% QuaDRiGa Copyright (C) 2011-2021
+% QuaDRiGa Copyright (C) 2011-2024
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -45,15 +48,29 @@ else
     h_mesh = h_mesh(1,1); % workaround for octave
 end
 
-if ~exist('obj_id','var') || isempty( obj_id )
-    obj_id = true(size(h_mesh.obj_index));
-else
-    obj_index = uint32( h_mesh.obj_index );
-    ii = false( size( obj_index ) );
-    for n = 1 : numel( obj_id )
-        ii = ii | obj_index == uint32( obj_id(n) );
+if ~exist('show_sub_meshes','var') || isempty( show_sub_meshes )
+    show_sub_meshes = false;
+end
+
+obj_iid = false(size(h_mesh.obj_index));
+if exist('obj_id','var') && ~isempty( obj_id )
+    if show_sub_meshes
+        ix = [ h_mesh.Psub_mesh_index, h_mesh.no_face + 1 ];
+        for n = 1 : numel( obj_id )
+            m = obj_id(n);
+            obj_iid( ix(m):ix(m+1)-1 ) = true;
+        end
+    else
+        obj_index = uint32( h_mesh.obj_index );
+        ii = false( size( obj_index ) );
+        for n = 1 : numel( obj_id )
+            ii = ii | obj_index == uint32( obj_id(n) );
+        end
+        obj_iid = ii;
     end
-    obj_id = ii;
+else
+    obj_id = 1 : numel( h_mesh.Psub_mesh_index );
+    obj_iid(:) = true;
 end
 
 if exist('create_new_figure','var') && ~isempty( create_new_figure )
@@ -64,19 +81,42 @@ else
     create_new_figure = true;
 end
 
+
+
 % Create a new figure
 if create_new_figure
     han = figure('Position',[ 100 , 100 , 1000 , 700]);
 end
 
-mtl_index = uint32(h_mesh.mtl_index);
-n_mtl = numel( h_mesh.mtl_name );
-for i_mtl = 1 : n_mtl
-    ii_mtl = mtl_index == uint32(i_mtl) & obj_id;
-    if any( ii_mtl )
-        C = h_mesh.mtl_color(:,i_mtl)';
-        patch ('Faces', h_mesh.face(:,ii_mtl)', 'Vertices', h_mesh.vert', 'FaceColor', C, 'EdgeColor', C/2  );
+if show_sub_meshes && ~isempty( h_mesh.sub_mesh_index )
+
+    % Plot faces, use different colors for sub-meshes
+    sub_color = jet( numel( obj_id ) );
+    ix = [ h_mesh.Psub_mesh_index, h_mesh.no_face + 1 ];
+    for i_obj = 1 : numel( obj_id )
+        i_sub = obj_id( i_obj );
+        ii_sub = false( 1, h_mesh.no_face );
+        ii_sub( ix(i_sub):ix(i_sub+1)-1 ) = true;
+        ii_sub = ii_sub & obj_iid;
+        if any( ii_sub )
+            C = sub_color(i_obj,:);
+            patch ('Faces', h_mesh.face(:,ii_sub)', 'Vertices', h_mesh.vert', 'FaceColor', C, 'EdgeColor', C/2 );
+        end
     end
+
+else
+    
+    % Plot faces and their colors
+    mtl_index = uint32(h_mesh.mtl_index);
+    n_mtl = numel( h_mesh.mtl_name );
+    for i_mtl = 1 : n_mtl
+        ii_mtl = mtl_index == uint32(i_mtl) & obj_iid;
+        if any( ii_mtl )
+            C = h_mesh.mtl_color(:,i_mtl)';
+            patch ('Faces', h_mesh.face(:,ii_mtl)', 'Vertices', h_mesh.vert', 'FaceColor', C, 'EdgeColor', C/2  );
+        end
+    end
+
 end
 
 if ~create_new_figure

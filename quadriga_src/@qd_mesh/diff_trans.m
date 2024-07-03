@@ -33,7 +33,7 @@ function gain = diff_trans( h_mesh, orig, dest, center_frequency, lod, obj_id, v
 %   Gain caused by diffraction and transmission effects; linear scale; Dimensions: (1xN)
 %
 %
-% QuaDRiGa Copyright (C) 2011-2023
+% QuaDRiGa Copyright (C) 2011-2024
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -109,6 +109,10 @@ else
 end
 mtl_prop = mtl_prop( h_mesh.mtl_index(obj_id), : );
 
-gain = quadriga_lib.calc_diffraction_gain( orig', dest', mesh,  mtl_prop, center_frequency, lod, verbose );
+if isempty( h_mesh.Psub_mesh_index )
+    gain = quadriga_lib.calc_diffraction_gain( orig', dest', mesh,  mtl_prop, center_frequency, lod, verbose );
+else
+    gain = quadriga_lib.calc_diffraction_gain( orig', dest', mesh,  mtl_prop, center_frequency, lod, verbose, h_mesh.Psub_mesh_index - 1 );
+end
 
 end

@@ -41,7 +41,7 @@ function [ islos, no_trans, fbs, sbs, iFBS, iSBS ] = intersect_mesh( h_mesh, ori
 %   Index of the second mesh element that was hit by the ray; uint32; Dimensions: (1xN)
 %
 %
-% QuaDRiGa Copyright (C) 2011-2023
+% QuaDRiGa Copyright (C) 2011-2024
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -82,9 +82,11 @@ if size(orig,2) == 1
     orig = repmat(orig, 1, size(dest,2));
 end
 
+use_object_id = false;
 if ~exist('obj_id','var') || isempty( obj_id )
     obj_id = true(size(h_mesh.obj_index));
 else
+    use_object_id = true;
     obj_index = uint32( h_mesh.obj_index );
     ii = false( size( obj_index ) );
     for n = 1 : numel( obj_id )
@@ -94,13 +96,24 @@ else
 end
 
 % Read the vertices from the mesh
-if use_single
-    mesh = single( h_mesh.mesh(obj_id,:) );
+if use_object_id
+    mesh = h_mesh.mesh(obj_id,:);
 else
-    mesh = double( h_mesh.mesh(obj_id,:) );
+    mesh = h_mesh.mesh;
 end
 
-[ fbs, sbs, no_trans, iFBS, iSBS ] = quadriga_lib.ray_triangle_intersect( orig', dest', mesh );
+if use_single
+    mesh = single( mesh );
+else
+    mesh = double( mesh );
+end
+
+if use_object_id || isempty( h_mesh.Psub_mesh_index )
+    [ fbs, sbs, no_trans, iFBS, iSBS ] = quadriga_lib.ray_triangle_intersect( orig', dest', mesh );
+else
+    [ fbs, sbs, no_trans, iFBS, iSBS ] = quadriga_lib.ray_triangle_intersect( orig', dest', mesh, h_mesh.Psub_mesh_index - 1 );
+end
+
 islos = no_trans == uint32(0);
 
 end

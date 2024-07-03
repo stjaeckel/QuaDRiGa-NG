@@ -95,4 +95,7 @@ h_mesh.face = [ single(h_mesh.face), face ];
 h_mesh.obj_index(i_face:end) = obj_mesh_index;
 h_mesh.mtl_index(i_face:end) = uint32(mat_id);
    
+% Reset sib-mesh index
+h_mesh.Psub_mesh_index = [];
+
 end

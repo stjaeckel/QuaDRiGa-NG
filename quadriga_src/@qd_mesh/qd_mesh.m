@@ -8,7 +8,7 @@ classdef qd_mesh  < handle
 %   a set of triangles that point to the vertices it uses. 
 %
 %
-% QuaDRiGa Copyright (C) 2011-2023
+% QuaDRiGa Copyright (C) 2011-2024
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -40,6 +40,11 @@ properties(Dependent)
     %   The indices pointing to a closed set of 3 vertices defining a triangle face. Indices are
     %   stored in uint32 format.
     face
+
+    % List of mesh segments [ no_seg ] - uint32
+    %   Computational performance can be improved by splitting the mesh into sub-segments and
+    %   calculating an index.
+    sub_mesh_index
 
     % Object index for each mesh face
     %   Faces can be grouped into objects, e.g. buildings, trees, etc. Each face is assigned an
@@ -85,6 +90,7 @@ properties(Dependent)
     no_face     % Number of faces
     no_obj      % Number of objects
     no_mtl      % Number of materials
+    no_index    % Number sub-mesh indices
 end
 
 % properties(Dependent,SetAccess=protected)
@@ -101,11 +107,13 @@ end
 properties(Hidden,Dependent)
     mesh
     mtl
+    aabb
 end
 
 properties(Access=private)
    Pvert = [];
    Pface = [];
+   Psub_mesh_index = [];
    Pobj_index = [];
    Pmtl_index = [];
    Pobj_name = {'Default'};
@@ -130,6 +138,9 @@ methods
     end
     function out = get.face( h_mesh )
        out = h_mesh(1,1).Pface;
+    end
+    function out = get.sub_mesh_index( h_mesh )
+       out = h_mesh(1,1).Psub_mesh_index;
     end
     function out = get.obj_index( h_mesh )
        out = h_mesh(1,1).Pobj_index;
@@ -167,8 +178,14 @@ methods
     function out = get.no_mtl( h_mesh )
        out = size( h_mesh.Pmtl_name ,2 );
     end
+    function out = get.no_index( h_mesh )
+       out = numel( h_mesh.Psub_mesh_index );
+    end
     function m = get.mesh( h_mesh )
         m = reshape( h_mesh(1,1).Pvert(:,h_mesh(1,1).Pface(:)), 9,[] )';
+    end
+    function m = get.aabb( h_mesh )
+        m = quadriga_lib.triangle_mesh_aabb( h_mesh.mesh, h_mesh.Psub_mesh_index-1 );
     end
     
     % Set functions

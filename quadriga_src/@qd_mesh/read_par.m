@@ -132,4 +132,7 @@ h_mesh.face = [ single(h_mesh.face), face ];
 h_mesh.mtl_index(i_face:end) = mtl_mesh_index;
 h_mesh.obj_index(i_face:end) = repmat( obj_mesh_index,1,size(face,2));
 
+% Reset sib-mesh index
+h_mesh.Psub_mesh_index = [];
+
 end

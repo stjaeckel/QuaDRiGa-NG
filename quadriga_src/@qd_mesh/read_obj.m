@@ -121,10 +121,17 @@ h_mesh.vert = [ h_mesh.vert, vert_list' ];
 h_mesh.face = [ h_mesh.face,  face_ind' + no_exisiting_vert ];
 
 % Write objects to mesh
-h_mesh.obj_name = cat( 2, h_mesh.obj_name, obj_name' );
-h_mesh.obj_index( no_existing_face+1:end ) = obj_ind' + no_existing_obj;
+if ~isempty( obj_name )
+    h_mesh.obj_name = cat( 2, h_mesh.obj_name, obj_name' );
+    h_mesh.obj_index( no_existing_face+1:end ) = obj_ind' + no_existing_obj;
+end
 
 % Write material index
-h_mesh.mtl_index( no_existing_face+1:end ) = mtl_ind';
+if ~isempty( mtl_ind )
+    h_mesh.mtl_index( no_existing_face+1:end ) = mtl_ind';
+end
+
+% Reset sib-mesh index
+h_mesh.Psub_mesh_index = [];
 
 end
