@@ -104,8 +104,8 @@ properties(Constant)
     version = '3.1.1-0';
 end
 
-properties(Dependent,SetAccess=protected)
-    quadriga_lib_version
+properties(SetAccess=protected)
+    quadriga_lib_version = 'ERROR';
 end
 
 properties(Constant)
@@ -130,19 +130,19 @@ end
 
 methods
     
+    % Constructor
+    function h_simpar = qd_simulation_parameters
+        try %#ok
+            h_simpar.quadriga_lib_version = quadriga_lib.version;
+        end
+    end
+
     % Get functions
     function out = get.sample_density(obj)
         out = obj.Psample_density;
     end
     function out = get.samples_per_meter(obj)
         out = 2*max( obj.center_frequency )*obj.Psample_density ./ obj.speed_of_light;
-    end
-    function out = get.quadriga_lib_version(obj)
-        try
-            out = quadriga_lib.version;
-        catch
-            out = 'ERROR';
-        end
     end
     function out = get.wavelength(obj)
         out = obj.speed_of_light ./ obj.center_frequency;
