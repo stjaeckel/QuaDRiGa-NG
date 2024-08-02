@@ -1,4 +1,4 @@
-function han = visualize( h_mesh, obj_id, create_new_figure, show_sub_meshes )
+function han = visualize( h_mesh, obj_id, create_new_figure, show_sub_meshes, alpha )
 %VISUALIZE Plots the polygon mesh
 %
 % Calling object:
@@ -19,6 +19,10 @@ function han = visualize( h_mesh, obj_id, create_new_figure, show_sub_meshes )
 %
 %   show_sub_meshes
 %   If set to 1, visualize the mesh segments and bounding boxes.
+%
+%   alpha
+%   Transparency of the mesh, scalar 0.0 (transparent) to 1.0 (opaque, default)
+%
 %
 % Output:
 %   han
@@ -50,6 +54,14 @@ end
 
 if ~exist('show_sub_meshes','var') || isempty( show_sub_meshes )
     show_sub_meshes = false;
+end
+
+if ~exist('alpha','var') || isempty( alpha )
+    alpha = 1.0;
+elseif alpha < 0.0
+    alpha = 0.0;
+elseif alpha > 1.0
+    alpha = 1.0;
 end
 
 obj_iid = false(size(h_mesh.obj_index));
@@ -100,7 +112,7 @@ if show_sub_meshes && ~isempty( h_mesh.sub_mesh_index )
         ii_sub = ii_sub & obj_iid;
         if any( ii_sub )
             C = sub_color(i_obj,:);
-            patch ('Faces', h_mesh.face(:,ii_sub)', 'Vertices', h_mesh.vert', 'FaceColor', C, 'EdgeColor', C/2 );
+            patch ('Faces', h_mesh.face(:,ii_sub)', 'Vertices', h_mesh.vert', 'FaceColor', C, 'EdgeColor', C/2, 'FaceAlpha', alpha );
         end
     end
 
@@ -113,7 +125,7 @@ else
         ii_mtl = mtl_index == uint32(i_mtl) & obj_iid;
         if any( ii_mtl )
             C = h_mesh.mtl_color(:,i_mtl)';
-            patch ('Faces', h_mesh.face(:,ii_mtl)', 'Vertices', h_mesh.vert', 'FaceColor', C, 'EdgeColor', C/2  );
+            patch ('Faces', h_mesh.face(:,ii_mtl)', 'Vertices', h_mesh.vert', 'FaceColor', C, 'EdgeColor', C/2, 'FaceAlpha', alpha  );
         end
     end
 
