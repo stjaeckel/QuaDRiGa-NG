@@ -295,17 +295,20 @@ methods
         end
     end
     
-    function set.tx_array(h_layout,value)
-        values = size(value,2);
-        if ~( isa(value, 'qd_arrayant') )
+    function set.tx_array( h_layout, h_array )
+        no_freq  = size( h_array, 1 );
+        no_array = size( h_array, 2 );
+        if ~( isa(h_array, 'qd_arrayant') )
             error('QuaDRiGa:qd_layout:WrongInput','??? "tx_array" must be objects of the class qd_arrayant')
-        elseif ~( values == h_layout.no_tx || values == 1 )
+        elseif ~( no_array == h_layout.no_tx || no_array == 1 )
             error('QuaDRiGa:qd_layout:WrongInput','??? "tx_array" must match "no_tx". Try to set "no_tx" first.')
         end
-        if values == 1 && h_layout.no_tx > 1
-            value( 1,2:h_layout.no_tx ) = value(1,1);
+        if no_array == 1 && h_layout.no_tx > 1
+            for i_freq = 1 : no_freq
+                h_array( i_freq, 2 : h_layout.no_tx ) = h_array( i_freq, 1 );
+            end
         end
-        h_layout.Ptx_array = value;
+        h_layout.Ptx_array = h_array;
         if ~isempty( h_layout.h_qd_builder_init )
             warning('QuaDRiGa:qd_layout:BuilderReset','Reset of pre-initialized "qd_builder" objects.');
             h_layout.h_qd_builder_init = [];
@@ -394,17 +397,20 @@ methods
         end
     end
     
-    function set.rx_array(h_layout,value)
-        values = size(value,2);
-        if ~( isa(value, 'qd_arrayant') )
+    function set.rx_array( h_layout, h_array )
+        no_freq  = size( h_array, 1 );
+        no_array = size( h_array, 2 );
+        if ~( isa(h_array, 'qd_arrayant') )
             error('QuaDRiGa:qd_layout:WrongInput','??? "rx_array" must be objects of the class qd_arrayant')
-        elseif ~( values == h_layout.no_rx || values == 1 )
+        elseif ~( no_array == h_layout.no_rx || no_array == 1 )
             error('QuaDRiGa:qd_layout:WrongInput','??? "rx_array" must match "no_rx". Try to set "no_rx" first.')
         end
-        if values == 1 && h_layout.no_rx > 1
-            value( 1,2:h_layout.no_rx ) = value(1,1);
+        if no_array == 1 && h_layout.no_rx > 1
+            for i_freq = 1 : no_freq
+                h_array( i_freq, 2 : h_layout.no_rx ) = h_array( i_freq, 1 );
+            end
         end
-        h_layout.Prx_array = value;
+        h_layout.Prx_array = h_array;
         if ~isempty( h_layout.h_qd_builder_init )
             warning('QuaDRiGa:qd_layout:BuilderReset','Reset of pre-initialized "qd_builder" objects.');
             h_layout.h_qd_builder_init = [];
