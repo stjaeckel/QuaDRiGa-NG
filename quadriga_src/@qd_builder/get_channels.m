@@ -9,7 +9,7 @@ function h_channel = get_channels( h_builder, use_single_precision, vb_dots, onl
 %   A vector of qd_channel objects
 %
 %
-% QuaDRiGa Copyright (C) 2011-2023
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -570,6 +570,8 @@ else
         h_channel(1,i_mobile).name = channel_name;
         h_channel(1,i_mobile).rx_position = h_builder.rx_track(1,i_mobile).positions_abs;
         h_channel(1,i_mobile).tx_position = h_builder.tx_track(1,i_mobile).positions_abs;
+        h_channel(1,i_mobile).rx_orientation = h_builder.rx_track(1,i_mobile).orientation;
+        h_channel(1,i_mobile).tx_orientation = h_builder.tx_track(1,i_mobile).orientation;
         h_channel(1,i_mobile).center_frequency = h_builder.simpar(1,1).center_frequency(1,1);
 
         % Add metadata to channel object

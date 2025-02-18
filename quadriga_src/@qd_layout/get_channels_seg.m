@@ -204,7 +204,7 @@ else    % Multiple segments
             end
         else                                                            % Build channels
             if n_freq > 1                                               % Multiple frequencies ?
-                h_builder_tmp = split_multi_freq( h_builder(1,ib) ); 	% Split builders for multiple frequencies
+                h_builder_tmp = split_multi_freq( h_builder(1,ib) );    % Split builders for multiple frequencies
             else
                 h_builder_tmp = h_builder(1,ib);                        % Copy handle
             end

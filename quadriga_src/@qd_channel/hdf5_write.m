@@ -154,9 +154,27 @@ sic = size( h_channel );
 for n = 1 : prod( sic )
     [ i1,i2,i3,i4 ] = qf.qind2sub( sic, n );
     location = [D1(i1), D2(i2), D3(i3), D4(i4)];
+
+    rx_orientation = h_channel(i1,i2,i3,i4).rx_orientation;
+    if size(rx_orientation,2) > 1
+        tmp = rx_orientation - repmat( rx_orientation(:,1), [1,size(rx_orientation,2)] );
+        if all( abs(tmp(:)) < 1e-6 )
+            rx_orientation = rx_orientation(:,1);
+        end
+    end
+
+    tx_orientation = h_channel(i1,i2,i3,i4).tx_orientation;
+    if size(tx_orientation,2) > 1
+        tmp = tx_orientation - repmat( tx_orientation(:,1), [1,size(tx_orientation,2)] );
+        if all( abs(tmp(:)) < 1e-6 )
+            tx_orientation = tx_orientation(:,1);
+        end
+    end
+
     quadriga_lib.hdf5_write_channel( fn, location, h_channel(i1,i2,i3,i4).par, h_channel(i1,i2,i3,i4).rx_position, ...
        h_channel(i1,i2,i3,i4).tx_position, real(h_channel(i1,i2,i3,i4).coeff), imag(h_channel(i1,i2,i3,i4).coeff), h_channel(i1,i2,i3,i4).delay,...
-       h_channel(i1,i2,i3,i4).center_frequency, h_channel(i1,i2,i3,i4).name, h_channel(i1,i2,i3,i4).initial_position );
+       h_channel(i1,i2,i3,i4).center_frequency, h_channel(i1,i2,i3,i4).name, h_channel(i1,i2,i3,i4).initial_position, ...
+       [], [], [], [], [], [], [], [], rx_orientation, tx_orientation);
 end
 
 end

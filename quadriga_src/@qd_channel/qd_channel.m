@@ -24,7 +24,7 @@ classdef qd_channel < handle
 %    mport_meas_data - Convert band-limited frequency-domain data into QuaDRiGa channels
 %
 %
-% QuaDRiGa Copyright (C) 2011-2019
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -103,13 +103,17 @@ properties(Dependent)
     %   100, then snapshots 1-99 are overlapping with the previous segment.
     initial_position
     
-    % Position of each Tx in global Cartesian coordinates using units
-    % of [m].
+    % Position of each Tx in global Cartesian coordinates using units of [m].
     tx_position
     
-    % The receiver position global Cartesian coordinates using units of
-    % [m] for each snapshot.
+    % The receiver position global Cartesian coordinates using units of [m] for each snapshot.
     rx_position
+
+    % Orientation of the TX (Euler angles) in [rad]
+    tx_orientation
+    
+    % Orientation of the RX (Euler angles) in [rad]
+    rx_orientation
 end
     
 properties(Dependent,SetAccess=protected)    
@@ -134,6 +138,8 @@ properties(Access=private)
     Pinitial_position   = [];
     Ptx_position        = [];
     Prx_position        = [];
+    Ptx_orientation      = [];
+    Prx_orientation      = [];
 end
 
 properties(Hidden)
@@ -185,6 +191,12 @@ methods
     end
     function out = get.rx_position(h_channel)
         out = h_channel(1,1).Prx_position;
+    end
+    function out = get.tx_orientation(h_channel)
+        out = h_channel(1,1).Ptx_orientation;
+    end
+    function out = get.rx_orientation(h_channel)
+        out = h_channel(1,1).Prx_orientation;
     end
     function out = get.no_rxant(h_channel)
         out = size( h_channel(1,1).Pcoeff,1);
@@ -318,7 +330,7 @@ methods
     end
     
     function set.rx_position(h_channel,value)
-        if isempty( value)
+        if isempty(value)
             h_channel(1,1).Prx_position = [];
         else
             if ~( isnumeric(value) && isreal(value) && size(value,2) > 0 )
@@ -331,7 +343,7 @@ methods
     end
     
     function set.tx_position(h_channel,value)
-        if isempty( value)
+        if isempty(value)
             h_channel(1,1).Ptx_position = [];
         else
             if ~( isnumeric(value) && isreal(value) )
@@ -340,6 +352,32 @@ methods
                 error('QuaDRiGa:Channel:wrongInputValue','??? "tx_position" must have 3 rows')
             end
             h_channel(1,1).Ptx_position = value;
+        end
+    end
+
+    function set.rx_orientation(h_channel,value)
+        if isempty(value)
+            h_channel(1,1).Prx_orientation = [];
+        else
+            if ~( isnumeric(value) && isreal(value) && size(value,2) > 0 )
+                error('QuaDRiGa:Channel:wrongInputValue','??? "rx_orientation" must consist of real numbers')
+            elseif ~all( size(value,1) == 3 )
+                error('QuaDRiGa:Channel:wrongInputValue','??? "rx_orientation" must have three rows.')
+            end
+            h_channel(1,1).Prx_orientation = value;
+        end
+    end
+    
+    function set.tx_orientation(h_channel,value)
+        if isempty(value)
+            h_channel(1,1).Ptx_orientation = [];
+        else
+            if ~( isnumeric(value) && isreal(value) )
+                error('QuaDRiGa:Channel:wrongInputValue','??? "tx_orientation" must consist of real numbers')
+            elseif ~all( size(value,1) == 3 )
+                error('QuaDRiGa:Channel:wrongInputValue','??? "tx_orientation" must have 3 rows')
+            end
+            h_channel(1,1).Ptx_orientation = value;
         end
     end
     

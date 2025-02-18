@@ -246,6 +246,20 @@ if u1 || I1(1) ~= 0
                     if ~isempty(tx_position)
                         h_channel(ox,oy,oz,ow).tx_position = tx_position;
                     end
+                    if ~isempty(rx_orientation)
+                        if size(rx_orientation,2) == 1 && size(rx_position,2) > 1
+                            h_channel(ox,oy,oz,ow).rx_orientation = repmat(rx_orientation,[1,size(rx_position,2)]);
+                        else
+                            h_channel(ox,oy,oz,ow).rx_orientation = rx_orientation;
+                        end
+                    end
+                    if ~isempty(tx_orientation)
+                        if size(tx_orientation,2) == 1 && size(tx_position,2) > 1
+                            h_channel(ox,oy,oz,ow).tx_orientation = repmat(tx_orientation,[1,size(tx_position,2)]);
+                        else
+                            h_channel(ox,oy,oz,ow).tx_orientation = tx_orientation;
+                        end
+                    end
                     if ~isempty(center_frequency)
                         h_channel(ox,oy,oz,ow).center_frequency = center_frequency(1);
                     end
@@ -273,12 +287,6 @@ if u1 || I1(1) ~= 0
                     end
                     if ~isempty(interact_coord)
                         h_channel(ox,oy,oz,ow).par.interact_coord = interact_coord;
-                    end
-                    if numel(rx_orientation)>3 || any(rx_orientation ~= 0)
-                        h_channel(ox,oy,oz,ow).par.rx_orientation = rx_orientation;
-                    end
-                    if numel(tx_orientation)>3 || any(tx_orientation ~= 0)
-                        h_channel(ox,oy,oz,ow).par.tx_orientation = tx_orientation;
                     end
                 end
             end

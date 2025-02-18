@@ -38,7 +38,7 @@ function c = merge( h_channel, overlap, verbose )
 %   An array of 'qd_channel' objects containing the merged coefficients and delays.
 %
 % 
-% QuaDRiGa Copyright (C) 2011-2019
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -109,6 +109,15 @@ for i_channel = 1 : n_channel
     if isempty( h_channel( 1,i_channel ).rx_position )      % Always use rx-positions
         h_channel( 1,i_channel ).rx_position = zeros( 3,h_channel( 1,i_channel ).no_snap );
     end
+    if isempty( h_channel( 1,i_channel ).rx_orientation )
+        h_channel( 1,i_channel ).rx_orientation = zeros( 3,h_channel( 1,i_channel ).no_snap );
+    end
+    if isempty( h_channel( 1,i_channel ).tx_position )
+        h_channel( 1,i_channel ).tx_position = [0;0;0];
+    end
+    if isempty( h_channel( 1,i_channel ).tx_orientation )
+        h_channel( 1,i_channel ).tx_orientation = zeros( size(h_channel( 1,i_channel ).tx_position) );
+    end
     
     % The channel object can have an additional field for the path loss.
     % However, this field is not mandatory. If it is empty, no processing of the
@@ -166,15 +175,17 @@ for i_trk = 1 : numel( trk_names )          % Do for each track
         coeff = zeros( no_rxant , no_txant , no_path , no_snap );
         delay = zeros( no_rxant , no_txant , no_path , no_snap );
         rx_position = zeros( 3,no_snap );
+        rx_orientation = zeros( 3,no_snap );
         pg = zeros( 1,no_snap );
         
         % Processing of the Tx position for dual-mobility
+        dual_mobility = false;
+        tx_position = h_channel(1, seg_ind(1) ).tx_position;
+        tx_orientation = h_channel(1, seg_ind(1) ).tx_orientation;
         if size( h_channel(1, seg_ind(1) ).tx_position, 2 ) > 1
             tx_position = zeros( 3,no_snap );
+            tx_orientation = zeros( 3,no_snap );
             dual_mobility = true;
-        else
-            tx_position = h_channel(1, seg_ind(1) ).tx_position;
-            dual_mobility = false;
         end
         
         for i_seg = 1 : n_seg           % Do for each segment
@@ -203,11 +214,13 @@ for i_trk = 1 : numel( trk_names )          % Do for each track
             coeff( :,:, ip, isn ) = h_channel( 1,ic1 ).coeff( :,:,:, is1n );
             delay( :,:, ip, isn ) = h_channel( 1,ic1 ).delay( :,:,:, is1n );
             rx_position( :,isn ) = h_channel( 1,ic1 ).rx_position( :,is1n );
+            rx_orientation( :,isn ) = h_channel( 1,ic1 ).rx_orientation( :,is1n );
             try
                 pg( :,isn ) = h_channel( 1,ic1 ).par(1).pg( :,is1n );
             end
             if dual_mobility
                 tx_position( :,isn ) = h_channel( 1,ic1 ).tx_position( :,is1n );
+                tx_orientation( :,isn ) = h_channel( 1,ic1 ).tx_orientation( :,is1n );
             end
             
             % Merge the two segments. This is only necessary, if there is an overlapping segment.
@@ -230,12 +243,21 @@ for i_trk = 1 : numel( trk_names )          % Do for each track
                 rx_pos1 = h_channel(1,ic1).rx_position(:,is1o);
                 rx_pos2 = h_channel(1,ic2).rx_position(:,is2o);
                 rx_position( :,iso ) = rx_pos1 .* ([1;1;1]*(1-ramp)) + rx_pos2 .* ([1;1;1]*ramp);
+
+                % Process rx orientation
+                rx_orient1 = h_channel(1,ic1).rx_orientation(:,is1o);
+                rx_orient2 = h_channel(1,ic2).rx_orientation(:,is2o);
+                rx_orientation( :,iso ) = rx_orient1 .* ([1;1;1]*(1-ramp)) + rx_orient2 .* ([1;1;1]*ramp);
                 
                 % Process tx position
                 if dual_mobility
                     tx_pos1 = h_channel(1,ic1).tx_position(:,is1o);
                     tx_pos2 = h_channel(1,ic2).tx_position(:,is2o);
                     tx_position( :,iso ) = tx_pos1 .* ([1;1;1]*(1-ramp)) + tx_pos2 .* ([1;1;1]*ramp);
+                    
+                    tx_orient1 = h_channel(1,ic1).tx_position(:,is1o);
+                    tx_orient2 = h_channel(1,ic2).tx_position(:,is2o);
+                    tx_orientation( :,iso ) = tx_orient1 .* ([1;1;1]*(1-ramp)) + tx_orient2 .* ([1;1;1]*ramp);
                 end
                 
                 % Process path gain
@@ -253,11 +275,13 @@ for i_trk = 1 : numel( trk_names )          % Do for each track
             coeff( :,:, ip, end ) = h_channel( 1,ic2 ).coeff( :,:,:, is2n );
             delay( :,:, ip, end ) = h_channel( 1,ic2 ).delay( :,:,:, is2n );
             rx_position( :,end ) = h_channel( 1,ic2 ).rx_position( :,is2n );
+            rx_orientation( :,end ) = h_channel( 1,ic2 ).rx_orientation( :,is2n );
             try
                 pg( :,end ) = h_channel( 1,ic2 ).par(1).pg( :,is2n );
             end
             if dual_mobility
                 tx_position( :,end ) = h_channel( 1,ic2 ).tx_position( :,is2n );
+                tx_orientation( :,end ) = h_channel( 1,ic2 ).tx_orientation( :,is2n );
             end
         end
         
@@ -276,6 +300,8 @@ for i_trk = 1 : numel( trk_names )          % Do for each track
         c(1,i_trk).version = h_channel(1,ic1).version;
         c(1,i_trk).rx_position = rx_position;
         c(1,i_trk).tx_position = tx_position;
+        c(1,i_trk).rx_orientation = rx_orientation;
+        c(1,i_trk).tx_orientation = tx_orientation;
         c(1,i_trk).center_frequency = h_channel(1,ic1).center_frequency;
         if any( pg ~= 0 ) || trk_has_gr(i_trk)
             par_tmp = struct;
