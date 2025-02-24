@@ -31,7 +31,7 @@ function [ trk_names, seg_ind, order, trk_has_gr, seg_has_gr, tx_ind, rx_ind, tx
 %   A [ N x 1 ] logical array indicating if the segment has a ground reflection component.
 %
 % 
-% QuaDRiGa Copyright (C) 2011-2019
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -123,7 +123,7 @@ trk_has_gr = false(1,1);
 % The following code implements "unique(id_trk)" but does not sort the
 % values in id_trk.
 pt = 1;
-while pt < numel( trk_names )
+while pt <= numel( trk_names )
     if single_seg( pt )
         ii = [];
     else
@@ -140,7 +140,7 @@ end
 
 % Get the unique tx names
 pt = 1;
-while pt < numel( tx_names )
+while pt <= numel( tx_names )
     ii = find( strcmp( tx_names(pt) , tx_names(pt+1:end) ) ) + pt;
     if ~isempty( ii )
         ind = setdiff( 1:numel(tx_names), ii );
@@ -151,7 +151,7 @@ end
 
 % Get the unique rx names
 pt = 1;
-while pt < numel( rx_names )
+while pt <= numel( rx_names )
     ii = find( strcmp( rx_names(pt) , rx_names(pt+1:end) ) ) + pt;
     if ~isempty( ii )
         ind = setdiff( 1:numel(rx_names), ii );

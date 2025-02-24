@@ -64,7 +64,7 @@ if numel(h_builder) > 1
         if verbose
             vb_dots(i_cb) = h_builder(i1,i2,i3,i4).no_rx_positions;
         else
-            % Workaround for Octave 4
+            % Workaround for Octave
             if numel( sic ) == 4
                 h_builder(i1,i2,i3,i4).simpar(1,1).show_progress_bars = false;
             elseif numel( sic ) == 3
@@ -91,7 +91,7 @@ if numel(h_builder) > 1
     end
 
 else
-    % Fix for octave 4.0 (conversion from object-array to single object)
+    % Fix for Octave (conversion from object-array to single object)
     h_builder = h_builder(1,1);
 
     % Check if we have a single-frequency builder
@@ -301,9 +301,9 @@ else
         end
 
         % Placeholder for the coefficient calculation
-        coeff = zeros( n_links , n_clusters , n_snapshots, precision );   % Coefficients
-        delay = zeros( n_links , n_clusters , n_snapshots, precision );   % Delays
-        ppat  = zeros( n_links , n_clusters , n_snapshots, precision );   % Radiated power
+        coeff = zeros( n_links, n_clusters, n_snapshots, precision );   % Coefficients
+        delay = zeros( n_links, n_clusters, n_snapshots, precision );   % Delays
+        ppat  = zeros( n_links, n_clusters, n_snapshots, precision );   % Radiated power
 
         % Extract TX and RX position
         tx_position = h_builder.tx_position(:,i_mobile);
@@ -328,7 +328,7 @@ else
             dist_rx = sqrt( sum([ tmp(1,:) - tmp(1,1) ; tmp(2,:) - tmp(2,1) ; tmp(3,:) - tmp(3,1) ].^2 ) );
 
         else % Spherical waves
-            % Calculate the scatterer positions
+            % Calculate the scatterer positions for each sub-path
             if use_single_precision
                 fbs_pos = single( h_builder.fbs_pos(:,iPath,i_mobile) );
                 lbs_pos = single( h_builder.lbs_pos(:,iPath,i_mobile) );
@@ -336,6 +336,11 @@ else
                 fbs_pos = double( h_builder.fbs_pos(:,iPath,i_mobile) );
                 lbs_pos = double( h_builder.lbs_pos(:,iPath,i_mobile) );
             end
+        end
+
+        % In case of ground reflection, store the exact reflection points for each snapshot
+        if use_ground_reflection
+            gr_pos = zeros( 3, n_snapshots, precision );
         end
 
         for i_snapshot = 1 : n_snapshots
@@ -371,6 +376,8 @@ else
                 fbs_pos(2,2) = tx_position(2) + t * r(2);
                 fbs_pos(3,2) = 0;
                 lbs_pos(:,2) = fbs_pos(:,2);                            % Update LBS position
+
+                gr_pos(:,i_snapshot) = fbs_pos(:,2);                    % Store ground reflection position
 
                 path_length(2) = sqrt(sum(r.^2));                       % Update path length
                 theta_r = acos( r(3) / path_length(2) ) - pi/2;         % Angle between plane and GR
@@ -578,6 +585,7 @@ else
         clear par_struct
         if use_ground_reflection
             par_struct.has_ground_reflection = 1;
+            par_struct.gr_pos = gr_pos;
         end
         par_struct.ds_parset = h_builder.ds( i_mobile ); % [s]
         par_struct.kf_parset = 10*log10( h_builder.kf( i_mobile ) ); % [db]

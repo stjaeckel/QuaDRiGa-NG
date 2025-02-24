@@ -45,7 +45,7 @@ function [ h_channel, h_builder ] = get_channels_seg( h_layout, tx, rx, seg, fre
 %   The 'qd_builder' objects for the entire simulation.
 %
 %
-% QuaDRiGa Copyright (C) 2011-2020
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -258,7 +258,8 @@ else    % Multiple segments
     % The first segment must start at the "initial_position == 1", otherwise the merger
     % assumes that the tracks are closed.
     if h_channel_curr(1,1).initial_position ~= 1
-        snap_ind = h_channel_curr(1,1).initial_position : h_channel_curr(1,1).no_snap;
+        no_snap_curr = h_channel_curr(1,1).no_snap;
+        snap_ind = h_channel_curr(1,1).initial_position : no_snap_curr;
         for iF = 1 : numel( freq )
             
             % The current channel might come from the cache. In this case, we must create a copy
@@ -268,14 +269,23 @@ else    % Multiple segments
             end
             
             delay = h_channel_curr(1,iF).delay;
-            if size( h_channel_curr(1,iF).tx_position, 2 ) == h_channel_curr(1,iF).no_snap
+            if size( h_channel_curr(1,iF).tx_position, 2 ) == no_snap_curr
                 h_channel_curr(1,iF).tx_position = h_channel_curr(1,iF).tx_position(:,snap_ind);
+            end
+            if size( h_channel_curr(1,iF).tx_orientation, 2 ) == no_snap_curr
+                h_channel_curr(1,iF).tx_orientation = h_channel_curr(1,iF).tx_orientation(:,snap_ind);
+            end
+            if size( h_channel_curr(1,iF).rx_orientation, 2 ) == no_snap_curr
+                h_channel_curr(1,iF).rx_orientation = h_channel_curr(1,iF).rx_orientation(:,snap_ind);
             end
             rx_position = h_channel_curr(1,iF).rx_position(:,snap_ind);
             h_channel_curr(1,iF).coeff = h_channel_curr(1,iF).coeff(:,:,:,snap_ind);
             
             par_tmp = h_channel_curr(1,iF).par;
             par_tmp.pg = par_tmp.pg(:,snap_ind,:,:);
+            if isfield(par_tmp,'gr_pos') && size(par_tmp.gr_pos, 2) == no_snap_curr
+                par_tmp.gr_pos = par_tmp.gr_pos(:,snap_ind);
+            end
             h_channel_curr(1,iF).par = par_tmp;
             
             if h_channel_curr(1,iF).individual_delays

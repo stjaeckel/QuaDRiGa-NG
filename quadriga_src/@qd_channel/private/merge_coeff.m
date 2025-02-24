@@ -1,4 +1,5 @@
-function [ cf, dl, ip2, ramp ] = merge_coeff( cf1, dl1, cf2, dl2, ip1, gr1, gr2, gro )
+function [ cf, dl, ip2, ramp, im_no, im_fbs, im_lbs ] = merge_coeff( cf1, dl1, cf2, dl2, ip1, gr1, gr2, gro, ...
+    i1_no, i1_fbs, i1_lbs, i2_no, i2_fbs, i2_lbs )
 %MERGE_COEFF Merges the coefficients
 %
 % Input:
@@ -13,16 +14,29 @@ function [ cf, dl, ip2, ramp ] = merge_coeff( cf1, dl1, cf2, dl2, ip1, gr1, gr2,
 %   gr2         Indicator (1/0) if channel 2 has a GR on tap 2
 %   gro         Indicator (1/0) if output channel should have a GR on tap 2
 %
+%   i1_no       No. interactions of channel 1       [ L1 x S ]          optional
+%   i1_fbs      FBS positions of channel 1          [ 3 x L1 x S ]      optional
+%   i1_lbs      LBS positions of channel 1          [ 3 x L1 x S ]      optional
+%
+%   i2_no       No. interactions of channel 2       [ L2 x S ]          optional
+%   i2_fbs      FBS positions of channel 2          [ 3 x L2 x S ]      optional
+%   i2_lbs      LBS positions of channel 2          [ 3 x L2 x S ]      optional
+%
 % Output:
 %   cf          Merged coefficients                 [ R x T x L x S ]
 %   dl          Merged delays                       [ R x T x L x S ]
 %   ip          Tap positions for the merger        [ 1 x L ]
 %   ip2         Tap positions for the next segment  [ 1 x L2 ]
+%   ramp        Power ramp                          [ 1 x S ]
+%
+%   im_no       Merged no. interactions             [ L x S ]
+%   im_fbs      Merged FBS positions                [ 3 x L x S ]
+%   im_lbs      Merged LBS positions                [ 3 x L x S ]
 %
 %   L = max(L1,L2)+1;
 %
 % 
-% QuaDRiGa Copyright (C) 2011-2019
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -49,7 +63,7 @@ if size(dl1,1) ~= R || size(dl1,2) ~= T || size(dl1,3) ~= L1 || size(dl1,4) ~= S
         size(cf2,1) ~= R || size(cf2,2) ~= T || size(cf2,3) ~= L2 || size(cf2,4) ~= S || ...
         size(dl2,1) ~= R || size(dl2,2) ~= T || size(dl2,3) ~= L2 || size(dl2,4) ~= S || ...
         numel(ip1) ~= L1
-    error('QuaDRiGa:qd_channel:merge','Input sized do not match')
+    error('QuaDRiGa:qd_channel:merge','Input sizes do not match')
 end
 
 % Parse the GR switches
@@ -111,6 +125,22 @@ dl = zeros( R,T,L,S );
 % Copy the old data to the output
 cf(:,:,ip1,:) = cf1;
 dl(:,:,ip1,:) = dl1;
+
+% Initialize output FBS / LBS positions
+calc_interact_coord = nargin > 8;
+if calc_interact_coord
+    im_no = zeros( L,S );
+    im_fbs = zeros( 3,L,S );
+    im_lbs = zeros( 3,L,S );
+
+    im_no(ip1,:) = i1_no;
+    im_fbs(:,ip1,:) = i1_fbs;
+    im_lbs(:,ip1,:) = i1_lbs;
+else
+    im_no = [];
+    im_fbs = [];
+    im_lbs = [];
+end
 
 % The initial order of the paths. This is later updated to find the optimal ramp up/down
 % order that maintains the DS.
@@ -191,6 +221,20 @@ if no_subseg > 0
         dl( :,:,i_up,ind2 ) = dl2(:,:,o2(l),ind2);
         dl( :,:,i_up,ind3 ) = dl2(:,:,o2(l),ind3);
         
+        if calc_interact_coord
+            im_no( i_down,ind3 ) = 0;
+            im_no( i_up,ind2 ) = i2_no( o2(l),ind2 );
+            im_no( i_up,ind3 ) = i2_no( o2(l),ind3 );
+
+            im_fbs( :,i_down,ind3 ) = 0;
+            im_fbs( :,i_up,ind2 ) = i2_fbs( :,o2(l),ind2 );
+            im_fbs( :,i_up,ind3 ) = i2_fbs( :,o2(l),ind3 );
+
+            im_lbs( :,i_down,ind3 ) = 0;
+            im_lbs( :,i_up,ind2 ) = i2_lbs( :,o2(l),ind2 );
+            im_lbs( :,i_up,ind3 ) = i2_lbs( :,o2(l),ind3 );
+        end
+
         ip2( o2(l) ) = i_up;                            % Store new tap position
         ip( i_up )   = true;                            % Lock slot for new tap
         ip( i_down ) = -1;                              % Free slot for next tap
@@ -212,7 +256,7 @@ ramp_up    = sqrt( ramp );
 
 % Ramp down all remaining NLOS taps from the old segment
 if L1n > no_subseg
-    for l = no_subseg+1 : L1n
+    for l = no_subseg + 1 : L1n
         i_down = ip1( o1(l) );                      % Index of the ramp-down path
         cf( :,:,i_down,: ) = cf( :,:,i_down,: ) .* ramp_down;
         ip( i_down ) = -1;                          % Indicate ramp-down position
@@ -221,10 +265,15 @@ end
 
 % Ramp up all remaining NLOS taps
 if L2n > no_subseg
-    for l = no_subseg+1 : L2n
+    for l = no_subseg + 1 : L2n
         i_up = find( ip == 0, 1 );                  % Get empty slot
-        cf( :,:,i_up,: ) = cf2(:,:,o2(l),:) .* ramp_up;
-        dl( :,:,i_up,: ) = dl2(:,:,o2(l),:);
+        cf( :,:,i_up,: ) = cf2( :,:,o2(l),: ) .* ramp_up;
+        dl( :,:,i_up,: ) = dl2( :,:,o2(l),: );
+        if calc_interact_coord
+            im_no( i_up,: ) = i2_no( o2(l),: );
+            im_fbs( :,i_up,: ) = i2_fbs( :,o2(l),: );
+            im_lbs( :,i_up,: ) = i2_lbs( :,o2(l),: );
+        end
         ip2( o2(l) ) = i_up;                        % Store new tap position
         ip( i_up )   = 1;                           % Lock slot for new tap
     end
@@ -257,6 +306,24 @@ ramp = reshape( ramp(1,1,1,:) , 1,S );
 last_ip = find( ip ~= 0,1,'last' );
 cf = cf(:,:,1:last_ip,:);
 dl = dl(:,:,1:last_ip,:);
+
+% Process GR for interaction coordinates
+if calc_interact_coord
+    if gr1 && gr2
+        ramp_up = repmat( permute( ramp, [1,3,2] ), [3,1,1] );
+        im_fbs(:,2,:) = i1_fbs(:,2,:) .* (1-ramp_up) + i2_fbs(:,2,:) .* ramp_up;
+        im_lbs(:,2,:) = i1_lbs(:,2,:) .* (1-ramp_up) + i2_lbs(:,2,:) .* ramp_up;
+    elseif gr1 && ~gr2
+        im_fbs(:,2,:) = i1_fbs(:,2,:);
+        im_lbs(:,2,:) = i1_lbs(:,2,:);
+    elseif ~gr1 && gr2
+        im_fbs(:,2,:) = i2_fbs(:,2,:);
+        im_lbs(:,2,:) = i2_lbs(:,2,:);
+    end
+    im_no = im_no(1:last_ip,:);
+    im_fbs = im_fbs(:,1:last_ip,:);
+    im_lbs = im_lbs(:,1:last_ip,:);
+end
 
 
 if 0 % For debugging

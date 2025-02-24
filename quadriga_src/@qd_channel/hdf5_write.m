@@ -171,10 +171,23 @@ for n = 1 : prod( sic )
         end
     end
 
-    quadriga_lib.hdf5_write_channel( fn, location, h_channel(i1,i2,i3,i4).par, h_channel(i1,i2,i3,i4).rx_position, ...
+    par = h_channel(i1,i2,i3,i4).par;
+
+    no_interact = [];
+    interact_coord = [];
+    if ~isempty(par) && isfield( par,'no_interact' ) && isfield( par,'interact_coord' )
+        no_interact = uint32( par.no_interact );
+        interact_coord = par.interact_coord;
+        par = rmfield( par, {'no_interact', 'interact_coord'});
+        if isempty(fieldnames(par))
+            par = [];
+        end
+    end
+
+    quadriga_lib.hdf5_write_channel( fn, location, par, h_channel(i1,i2,i3,i4).rx_position, ...
        h_channel(i1,i2,i3,i4).tx_position, real(h_channel(i1,i2,i3,i4).coeff), imag(h_channel(i1,i2,i3,i4).coeff), h_channel(i1,i2,i3,i4).delay,...
        h_channel(i1,i2,i3,i4).center_frequency, h_channel(i1,i2,i3,i4).name, h_channel(i1,i2,i3,i4).initial_position, ...
-       [], [], [], [], [], [], [], [], rx_orientation, tx_orientation);
+       [], [], [], [], [], [], no_interact, interact_coord, rx_orientation, tx_orientation);
 end
 
 end
