@@ -7,7 +7,7 @@ MATLAB_PATH = #/usr/local/MATLAB/R2023a
 
 # External libraries
 # External libraries are located in the 'external' folder. Set the version numbers here.
-quadriga_lib_version = 0.2.6
+quadriga_lib_version = 0.3.0
 
 # Autodetect MATLAB path
 ifeq ($(MATLAB_PATH),)
