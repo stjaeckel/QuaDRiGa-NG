@@ -440,36 +440,7 @@ else % Generate all channel objects
     if verbose
         fprintf('Formatting output channels')
     end
-    if numel(h_channel) == no_rx * no_tx * n_freq
-        % Reorder the channels such that they match the order in the layout
-        h_channel = qf.reshapeo( h_channel, [ no_rx, no_tx, n_freq ] );
-        
-        rx_name = cell(1,size( h_channel,1 ));                  % Get the correct RX order
-        for ir = 1 : size( h_channel,1 )
-            ii = regexp( h_channel(ir,1,1).name,'_' );
-            rx_name{ir} = h_channel(ir,1,1).name(ii(1)+1:end);
-        end
-        rx_order = zeros( 1,h_layout.no_rx );
-        for ir = 1 : h_layout.no_rx
-            rx_order( ir ) = find( strcmp( h_layout.rx_track(1,ir).name, rx_name ) );
-        end
-        
-        tx_name = cell(1,size( h_channel,2 ));                  % Get the correct TX order
-        for it = 1 : size( h_channel,2 )
-            ii = regexp( h_channel(1,it,1).name,'_' );
-            if n_freq == 1
-                tx_name{it} = h_channel(1,it).name(1:ii(1)-1);
-            else
-                tx_name{it} = h_channel(1,it,1).name(5:ii(1)-1);
-            end
-        end
-        tx_order = zeros( 1,h_layout.no_tx );
-        for it = 1 : h_layout.no_tx
-            tx_order( it ) = find( strcmp( h_layout.tx_track(1,it).name, tx_name ) );
-        end
-                    
-        h_channel = h_channel( rx_order, tx_order, 1:n_freq );
-    end
+    h_channel = sort_channels( h_layout, h_channel );
     
     if verbose
         if numel( h_channel ) == 1

@@ -12,7 +12,7 @@ function mat_save( h_channel, filename, version )
 %   MAT-file version. Default is "-v6"
 %
 %
-% QuaDRiGa Copyright (C) 2011-2021
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -102,6 +102,18 @@ for n = 1 : prod( sic )
     if ~isempty( h_channel(i1,i2,i3,i4).tx_position )
         var_name = ['channel_',num2str(channel_no,'%05.0f'),'_tx_position'];
         chn.(var_name) = single( h_channel(i1,i2,i3,i4).tx_position );
+    end
+
+    % Write the rx-orientation only if it is specified in the channel object
+    if ~isempty( h_channel(i1,i2,i3,i4).rx_orientation )
+        var_name = ['channel_',num2str(channel_no,'%05.0f'),'_rx_orientation'];
+        chn.(var_name) = single( h_channel(i1,i2,i3,i4).rx_orientation );
+    end
+
+    % Write the tx-orientation only if it is specified in the channel object
+    if ~isempty( h_channel(i1,i2,i3,i4).tx_orientation )
+        var_name = ['channel_',num2str(channel_no,'%05.0f'),'_tx_orientation'];
+        chn.(var_name) = single( h_channel(i1,i2,i3,i4).tx_orientation );
     end
     
     % Write the par-struct

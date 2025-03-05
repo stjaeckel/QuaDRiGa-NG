@@ -229,7 +229,7 @@ supported_types = {'freespace','absolute','pathloss'};
 if ~exist( 'pow_reference' , 'var' ) || isempty( pow_reference )
     pow_reference = 'freespace';
 elseif ~( ischar(pow_reference) && any( strcmpi(pow_reference,supported_types)) )
-    str = 'Position reference not found. Supported types are: ';
+    str = 'Power reference not found. Supported types are: ';
     no = numel(supported_types);
     for n = 1:no
         str = [str,supported_types{n}];

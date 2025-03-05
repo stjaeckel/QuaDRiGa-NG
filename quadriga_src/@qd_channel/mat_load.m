@@ -353,6 +353,24 @@ for n = 1 : numel(groups)
         h_channel(1,n).tx_position = eval(var_name);
     end
         
+    % RX Orientation
+    var_name = ['channel_',num2str(groups(n),'%05.0f'),'_rx_orientation'];
+    try
+        if ~has_all_data
+            load(filename,var_name);
+        end
+        h_channel(1,n).rx_orientation = eval(var_name);
+    end
+
+    % TX Orientation
+    var_name = ['channel_',num2str(groups(n),'%05.0f'),'_tx_orientation'];
+    try
+        if ~has_all_data
+            load(filename,var_name);
+        end
+        h_channel(1,n).tx_orientation = eval(var_name);
+    end
+
     % Read "par" structure
     par = struct;
     selected_ds = {};

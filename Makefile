@@ -4,7 +4,7 @@
 MATLAB_PATH = C:\Program Files\MATLAB\R2022b
 
 # External libraries
-quadriga_lib_version = 0.3.0
+quadriga_lib_version = 0.3.2
 
 all:  quadriga-lib
 

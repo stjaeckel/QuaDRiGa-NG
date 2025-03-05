@@ -1,4 +1,5 @@
 xunit_new/
 quadriga_lib*/
 external/MOxUnit-master/
-.vscode/*
+.vscode/
+
