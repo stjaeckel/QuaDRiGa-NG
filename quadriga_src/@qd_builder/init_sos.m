@@ -166,7 +166,7 @@ else
     end
     
     % Initialize SOS generators for the generation of multipath components
-    if ~h_builder.simpar(1,1).use_3GPP_baseline && SC_lambda > 0 && isempty( h_builder.path_sos )
+    if ~h_builder.simpar(1,1).use_3GPP_baseline && Ln ~= 0 && SC_lambda > 0 && isempty( h_builder.path_sos )
         path_sos = qd_sos([]);
         for i_cluster = 1 : Ln
             % Delays (are identical if Tx and Rx positions are swapped)
@@ -189,7 +189,7 @@ else
     end
     
     % Initialize SOS generators for the XPR
-    if ~h_builder.simpar(1,1).use_3GPP_baseline && SC_lambda > 0 && isempty( h_builder.xpr_sos )
+    if ~h_builder.simpar(1,1).use_3GPP_baseline && Ln ~= 0 && SC_lambda > 0 && isempty( h_builder.xpr_sos )
         xpr_sos = qd_sos([]);
         for i_freq = 1 : F
             for i_cluster = 1 : Ln
@@ -207,7 +207,7 @@ else
     end
     
     % Initialize SOS generators for initial phases
-    if ~h_builder.simpar(1,1).use_3GPP_baseline && SC_lambda > 0 && isempty( h_builder.pin_sos )
+    if ~h_builder.simpar(1,1).use_3GPP_baseline && Ln ~= 0 && SC_lambda > 0 && isempty( h_builder.pin_sos )
         pin_sos = qd_sos([]);
         for i_freq = 1 : F
             for i_cluster = 1 : Ln
@@ -225,7 +225,7 @@ else
     end
     
     % Initialize SOS generators for mmMAGIC intra-cluster delay offsets
-    if ~h_builder.simpar(1,1).use_3GPP_baseline && SC_lambda > 0 && isempty( h_builder.clst_dl_sos )
+    if ~h_builder.simpar(1,1).use_3GPP_baseline && Ln ~= 0 && SC_lambda > 0 && isempty( h_builder.clst_dl_sos )
         clst_dl_sos = qd_sos([]);
         for i_cluster = 1 : Ln
             for i_sub = 1 : M

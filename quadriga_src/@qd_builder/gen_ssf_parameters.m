@@ -135,7 +135,7 @@ else
     
     % Check Path-SOS random generator
     path_sos = h_builder.path_sos;
-    if use_3GPP_baseline || isempty( path_sos )
+    if use_3GPP_baseline || isempty( path_sos ) || n_clusters == 1
         path_sos = [];
         
     elseif ~isa( path_sos, 'qd_sos' ) || size(path_sos,1) ~= n_nlos_clusters || size(path_sos,2) ~= 5
@@ -1132,12 +1132,12 @@ else
         for iF = 1 : n_freq  % Phases are independent for each frequency in multi-frequency simulations
             
             % Generate spatially correlated random variables for the NLOS phases
-            if isempty( h_builder.pin_sos )
+            if isempty( h_builder.pin_sos ) || n_nlos_paths == 0
                 randC = rand( n_mobiles,n_nlos_paths );
             else
                 randC = val( h_builder.pin_sos(:,:,iF), rx_pos, tx_pos_SOS ).';   % Uniform
                 randC = reshape( randC, n_mobiles, n_nlos_clusters, h_builder.scenpar.NumSubPaths );
-                randC = reshape( permute( randC, [1,3,2] ) , n_mobiles,n_nlos_paths );
+                randC = reshape( permute( randC, [1,3,2] ), n_mobiles, n_nlos_paths );
             end
             
             % Set phases
