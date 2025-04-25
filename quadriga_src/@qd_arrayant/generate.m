@@ -1,4 +1,4 @@
-function [ h_qd_arrayant, par ] = generate( array_type, Ain, Bin, Cin, Din, Ein, Fin, Gin, Hin, Iin, Jin )
+function [ h_qd_arrayant, par ] = generate( array_type, Ain, Bin, Cin, Din, Ein, Fin, Gin, Hin, Iin, Jin, Kin )
 %GENERATE Generates predefined array antennas
 %
 % Calling object:
@@ -7,15 +7,19 @@ function [ h_qd_arrayant, par ] = generate( array_type, Ain, Bin, Cin, Din, Ein,
 % Array types:
 %   omni
 %   An isotropic radiator with vertical polarization.
+%      * Ain - Pattern resolution in degree (optional, default = 1.0)
 %
 %   dipole
 %   A short dipole radiating with vertical polarization.
+%      * Ain - Pattern resolution in degree (optional, default = 1.0)
 %
 %   half-wave-dipole
 %   A half-wave dipole radiating with vertical polarization.
+%      * Ain - Pattern resolution in degree (optional, default = 1.0)
 %
 %   patch
 %   A vertically polarized patch antenna with 90° opening in azimuth and elevation.
+%      * Ain - Pattern resolution in degree (optional, default = 1.0)
 %
 %   custom
 %   An antenna with a custom gain in elevation and azimuth. The values A,B,C and D for the
@@ -23,6 +27,7 @@ function [ h_qd_arrayant, par ] = generate( array_type, Ain, Bin, Cin, Din, Ein,
 %      * Ain - 3dB beam width in azimuth direction
 %      * Bin - 3dB beam width in elevation direction
 %      * Cin - Isotropic gain (linear scale) at the back of the antenna
+%      * Din - Pattern resolution in degree (optional, default = 1.0)
 %
 %   parametric
 %   An antenna with the radiation pattern set to
@@ -67,6 +72,7 @@ function [ h_qd_arrayant, par ] = generate( array_type, Ain, Bin, Cin, Din, Ein,
 %           6. K=M, +/-45 degree polarized elements
 %      * Ein - The electric downtilt angle in [deg] for Din = 4,5,6
 %      * Fin - Element spacing in [λ], Default: 0.5
+%      * Gin - Pattern resolution in degree (optional, default = 1.0)
 %
 %   3gpp-mmw
 %   Antenna model for the 3GPP-mmWave channel model (TR 38.901, v14.1.0, pp.21). The parameters
@@ -76,6 +82,7 @@ function [ h_qd_arrayant, par ] = generate( array_type, Ain, Bin, Cin, Din, Ein,
 %      * Hin - Number of nested panels in a row (Ng)
 %      * Iin - Panel spacing in vertical direction (dg,V) in [λ], Default: 0.5 M
 %      * Jin - Panel spacing in horizontal direction (dg,H) in [λ], Default: 0.5 N
+%      * Kin - Pattern resolution in degree (optional, default = 1.0)
 %
 %   parabolic
 %   An ideal parabolic reflector antenna with input parameters:
@@ -95,19 +102,23 @@ function [ h_qd_arrayant, par ] = generate( array_type, Ain, Bin, Cin, Din, Ein,
 %   xpol
 %   Two elements with ideal isotropic patterns (vertical polarization). The second element is
 %   slanted by 90°.
+%      * Ain - Pattern resolution in degree (optional, default = 1.0)
 %
 %   rhcp-dipole
 %   Two crossed dipoles with one port. The signal on the second element (horizontal) is shifted by
 %   -90° out of phase. The two elements thus create a RHCP signal.
+%      * Ain - Pattern resolution in degree (optional, default = 1.0)
 %
 %   lhcp-dipole
 %   Two crossed dipoles with one port. The signal on the second element (horizontal) is shifted by
 %   90° out of phase. The two elements thus create a LHCP signal.
+%      * Ain - Pattern resolution in degree (optional, default = 1.0)
 %
 %   lhcp-rhcp-dipole
 %   Two crossed dipoles. For input port 1, the signal on the second element is shifted by +90° out
 %   of phase. For input port 2, the the signal on the second element is shifted by -90° out of
 %   phase. Port 1 thus transmits a LHCP signal and port 2 transmits a RHCP signal.
+%      * Ain - Pattern resolution in degree (optional, default = 1.0)
 %
 %   testarray
 %   An array antenna with near-optimal angular resolution for testing the spatial properties of the
@@ -177,7 +188,7 @@ function [ h_qd_arrayant, par ] = generate( array_type, Ain, Bin, Cin, Din, Ein,
 par = [];
 
 % Initialize all input variables
-var_names = {'Ain', 'Bin', 'Cin', 'Din', 'Ein', 'Fin', 'Gin', 'Hin', 'Iin', 'Jin'};
+var_names = {'Ain', 'Bin', 'Cin', 'Din', 'Ein', 'Fin', 'Gin', 'Hin', 'Iin', 'Jin', 'Kin'};
 for n = 1:numel( var_names )
     if ~exist( var_names{n},'var' )
         eval([ var_names{n},' = [];' ]);
@@ -188,15 +199,15 @@ array_type = lower( array_type );
 switch array_type
     case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole', 'xpol'}
         [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
-            coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate(array_type);
+            coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate(array_type, Ain);
 
     case 'custom'
         [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
-            coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate('custom', Ain, Bin, Cin );
+            coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate('custom', Ain, Bin, Cin, Din );
 
     case 'patch'
         [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
-            coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('custom', 90, 90, 0 );
+            coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('custom', 90, 90, 0, Ain );
         name = 'patch';
 
     case 'parametric'
@@ -223,26 +234,26 @@ switch array_type
 
     case '3gpp-3d'
         [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
-            coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('3gpp', Ain, Bin, Cin, Din, Ein, Fin );
+            coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('3gpp', Ain, Bin, Cin, Din, Ein, Fin, [], [], [], [], Gin );
         name = '3gpp-3d';
 
     case { '3gpp-mmw', '3gpp-nr' }
         [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
-            coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('3gpp', Ain, Bin, Cin, Din, Ein, Fin, Gin, Hin, Iin, Jin );
+            coupling_re, coupling_im, center_frequency] = quadriga_lib.arrayant_generate('3gpp', Ain, Bin, Cin, Din, Ein, Fin, Gin, Hin, Iin, Jin, Kin );
         name = array_type;
 
     case 'rhcp-dipole'
-        h_qd_arrayant = qd_arrayant('dipole');
+        h_qd_arrayant = qd_arrayant('dipole', Ain);
         copy_element( h_qd_arrayant,1,2 );
         rotate_pattern( h_qd_arrayant,90,'x',2 );
         h_qd_arrayant.coupling = 1/sqrt(2) * [1;-1j];
 
     case 'lhcp-dipole'
-        h_qd_arrayant = qd_arrayant.generate('rhcp-dipole');
+        h_qd_arrayant = qd_arrayant.generate('rhcp-dipole', Ain);
         h_qd_arrayant.coupling = 1/sqrt(2) * [1;1j];
 
     case 'lhcp-rhcp-dipole'
-        h_qd_arrayant = qd_arrayant.generate('rhcp-dipole');
+        h_qd_arrayant = qd_arrayant.generate('rhcp-dipole', Ain);
         h_qd_arrayant.coupling = 1/sqrt(2) * [1 1;1j -1j];
 
     case 'ula2'

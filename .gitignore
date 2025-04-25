@@ -2,4 +2,5 @@ xunit_new/
 quadriga_lib*/
 external/MOxUnit-master/
 .vscode/
+quadriga_src/qd_plan*
 

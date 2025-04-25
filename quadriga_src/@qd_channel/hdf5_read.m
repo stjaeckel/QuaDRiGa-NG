@@ -265,28 +265,28 @@ if u1 || I1(1) ~= 0
                     end
                     h_channel(ox,oy,oz,ow).initial_position = initial_position;
                     if ~isempty(path_gain)
-                        h_channel(ox,oy,oz,ow).par.path_gain = path_gain;
+                        h_channel(ox,oy,oz,ow).par(1,1).path_gain = path_gain;
                     end
                     if ~isempty(path_length)
-                        h_channel(ox,oy,oz,ow).par.path_length = path_length;
+                        h_channel(ox,oy,oz,ow).par(1,1).path_length = path_length;
                     end
                     if ~isempty(path_polarization)
-                        h_channel(ox,oy,oz,ow).par.path_polarization = path_polarization;
+                        h_channel(ox,oy,oz,ow).par(1,1).path_polarization = path_polarization;
                     end
                     if ~isempty(path_angles)
-                        h_channel(ox,oy,oz,ow).par.path_angles = path_angles;
+                        h_channel(ox,oy,oz,ow).par(1,1).path_angles = path_angles;
                     end
                     if ~isempty(fbs_pos)
-                        h_channel(ox,oy,oz,ow).par.fbs_pos = fbs_pos;
+                        h_channel(ox,oy,oz,ow).par(1,1).fbs_pos = fbs_pos;
                     end
                     if ~isempty(lbs_pos)
-                        h_channel(ox,oy,oz,ow).par.lbs_pos = lbs_pos;
+                        h_channel(ox,oy,oz,ow).par(1,1).lbs_pos = lbs_pos;
                     end
                     if ~isempty(no_interact)
-                        h_channel(ox,oy,oz,ow).par.no_interact = no_interact;
+                        h_channel(ox,oy,oz,ow).par(1,1).no_interact = no_interact;
                     end
                     if ~isempty(interact_coord)
-                        h_channel(ox,oy,oz,ow).par.interact_coord = interact_coord;
+                        h_channel(ox,oy,oz,ow).par(1,1).interact_coord = interact_coord;
                     end
                 end
             end
