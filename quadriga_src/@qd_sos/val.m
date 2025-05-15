@@ -141,7 +141,7 @@ else
             
             % Interpolate the ACF
             D( D>h_sos.dist(end) ) = h_sos.dist(end);
-            A = quadriga_lib.interp( h_sos.dist, 0, h_sos.acf, D );
+            A = quadriga_lib.interp( h_sos.dist, [], h_sos.acf, D );
             
             % Combine the two values
             s = (sa+sb) ./ sqrt(2+2*A);

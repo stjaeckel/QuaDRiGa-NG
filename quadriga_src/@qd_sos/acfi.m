@@ -39,7 +39,7 @@ end
 s   = size( dist );
 D   = reshape( dist, 1,[] );
 D( D>h_sos.dist(end) ) = h_sos.dist(end);
-val = quadriga_lib.interp( h_sos.dist, 0, h_sos.acf, D );
+val = quadriga_lib.interp( h_sos.dist, [], h_sos.acf, D );
 val = reshape( val,s );
 
 end

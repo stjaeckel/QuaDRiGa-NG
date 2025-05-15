@@ -98,8 +98,8 @@ for n = 1 : numel(i_element)
     [ iEl, iAz ] = qf.qind2sub( [nEl,nAz],ii );
     
     % Calculate azimuth beamwidth
-    Pi = abs(quadriga_lib.interp( az, 0, Fa(iEl,:), azi )).^2 +...
-        abs(quadriga_lib.interp( az, 0, Fb(iEl,:), azi )).^2;
+    Pi = abs(quadriga_lib.interp( az, [], Fa(iEl,:), azi )).^2 +...
+        abs(quadriga_lib.interp( az, [], Fb(iEl,:), azi )).^2;
     [P_max,iM] = max(Pi);
     Pi = Pi ./ P_max;
     
@@ -109,8 +109,8 @@ for n = 1 : numel(i_element)
     az_point_ang(n,1) = azi(iM)*180/pi;
     
     % Calculate elevation beamwidth
-    Pi = abs(quadriga_lib.interp( el, 0, Fa(:,iAz).', eli )).^2 +...
-        abs(quadriga_lib.interp( el, 0, Fb(:,iAz).', eli )).^2;
+    Pi = abs(quadriga_lib.interp( el, [], Fa(:,iAz).', eli )).^2 +...
+        abs(quadriga_lib.interp( el, [], Fb(:,iAz).', eli )).^2;
     [P_max,iM] = max(Pi);
     Pi = Pi ./ P_max;
     

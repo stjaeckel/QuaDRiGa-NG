@@ -1,3 +1,5 @@
+build/*
+build_*/*
 xunit_new/
 quadriga_lib*/
 external/MOxUnit-master/

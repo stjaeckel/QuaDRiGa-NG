@@ -364,7 +364,7 @@ else
             else
                 L_phi_NLOS = [     4,     5,     8,    10,    11,    12,    14,    15,    16,    19,    20 ];
                 C_phi_NLOS = [ 0.779, 0.860, 1.018, 1.090, 1.123, 1.146, 1.190, 1.211, 1.226, 1.273, 1.289 ];
-                C_phi_NLOS = quadriga_lib.interp( L_phi_NLOS, 0, C_phi_NLOS, n_clusters_baseline-1 );
+                C_phi_NLOS = quadriga_lib.interp( L_phi_NLOS, [], C_phi_NLOS, n_clusters_baseline-1 );
             end
             
             % C_phi_LOS depends on the K-Factor, eq. (7.5-10)
@@ -424,7 +424,7 @@ else
             else
                 L_phi_NLOS = [     8,    10,    11,    12,     15,    19,    20 ];
                 C_phi_NLOS = [ 0.889, 0.957, 1.031, 1.104, 1.1088, 1.184, 1.178 ];
-                C_phi_NLOS = quadriga_lib.interp( L_phi_NLOS, 0, C_phi_NLOS, n_clusters_baseline-1 );
+                C_phi_NLOS = quadriga_lib.interp( L_phi_NLOS, [], C_phi_NLOS, n_clusters_baseline-1 );
             end
             
             % C_phi_LOS depends on the K-Factor, eq. (7.5-15)

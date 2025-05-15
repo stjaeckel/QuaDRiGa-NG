@@ -46,6 +46,6 @@ Dc  = abs( Dc + 1j*Dc.' );
 ind = Dc(:) <= max( D );
 
 Ri  = zeros( nDi,nDi,'single' );
-Ri(ind) = quadriga_lib.interp( D, 0, R, Dc(ind) );
+Ri(ind) = quadriga_lib.interp( D, [], R, Dc(ind) );
 
 end
