@@ -24,7 +24,7 @@ function h_array = xml_read( fn, ignore_layout )
 %   Array of qd_arrayant objects.
 %
 %
-% QuaDRiGa Copyright (C) 2011-2023
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -49,8 +49,7 @@ if ~exist( 'ignore_layout','var' ) || isempty( ignore_layout )
     ignore_layout = false;
 end
 
-[e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
-    coupling_re, coupling_im, center_frequency, name, a_ind] = quadriga_lib.arrayant_qdant_read(fn,1);
+[pat, a_ind] = quadriga_lib.arrayant_qdant_read(fn,1);
 
 a_cnt = max(a_ind(:));
 if ignore_layout
@@ -61,21 +60,20 @@ end
 a = qd_arrayant([]);
 for n = 1 : a_cnt
     if n > 1
-        [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
-            coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_qdant_read(fn,n);
+        pat = quadriga_lib.arrayant_qdant_read(fn,n);
     end
     
     % Build qd_arrayant object
     a(1,n) = qd_arrayant([]);
-    a(1,n).name = name;
-    a(1,n).center_frequency = center_frequency;
-    a(1,n).elevation_grid = elevation_grid';
-    a(1,n).azimuth_grid = azimuth_grid';
-    a(1,n).no_elements = size(element_pos,2);
-    a(1,n).element_position = element_pos;
-    a(1,n).Fa = complex( e_theta_re, e_theta_im );
-    a(1,n).Fb = complex( e_phi_re, e_phi_im );
-    a(1,n).coupling = complex( coupling_re, coupling_im );
+    a(1,n).name = pat.name;
+    a(1,n).center_frequency = pat.center_freq;
+    a(1,n).elevation_grid = pat.elevation_grid;
+    a(1,n).azimuth_grid = pat.azimuth_grid;
+    a(1,n).no_elements = size(pat.element_pos,2);
+    a(1,n).element_position = pat.element_pos;
+    a(1,n).Fa = complex( pat.e_theta_re, pat.e_theta_im );
+    a(1,n).Fb = complex( pat.e_phi_re, pat.e_phi_im );
+    a(1,n).coupling = complex( pat.coupling_re, pat.coupling_im );
 end
 
 % Format output data

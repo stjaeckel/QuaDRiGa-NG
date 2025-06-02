@@ -82,7 +82,7 @@ b.rx_positions = [100;0;0];
 b.gen_parameters;
 
 if b.NumClusters == 1
-    c = b.get_los_channels('single','coeff');
+    c = b.get_los_channels('coeff');
 else
     c = b.get_channels;
     c = single( sum(c.coeff,3) );
@@ -114,7 +114,7 @@ az = C(1,1);
 el = C(1,2);
 
 b.rx_positions = [ cosd(az)*cosd(el) ; sind(az)*cosd(el) ; sind(el) ]*100;
-c = b.get_los_channels('single','coeff');
+c = b.get_los_channels('coeff');
 cf = permute( c, [2,3,1] ) ;
 
 A = abs( Wa * conj(cf) ).^2 + abs( Wb * conj(cf) ).^2;

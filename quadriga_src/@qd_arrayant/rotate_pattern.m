@@ -33,7 +33,7 @@ function rotate_pattern( h_qd_arrayant, deg, rotaxis, i_element, usage )
 %      * 2: Rotate only polarization
 %      * 3: Same as (0), but without grid interpolation
 %
-% QuaDRiGa Copyright (C) 2011-2023
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -126,30 +126,29 @@ end
 V = h_qd_arrayant.PFa(:,:,i_element);
 H = h_qd_arrayant.PFb(:,:,i_element);
 
-[ Vr, Vi, Hr, Hi, azimuth_grid, elevation_grid, element_pos] ...
-    = quadriga_lib.arrayant_rotate_pattern( real(V), imag(V), real(H), imag(H), ...
-    h_qd_arrayant.azimuth_grid, h_qd_arrayant.elevation_grid, h_qd_arrayant.Pelement_position(:,i_element), ...
-    xrot, yrot, zrot, usage);
+pat = quadriga_lib.arrayant_rotate_pattern([], xrot, yrot, zrot, usage, [], ...
+    real(V), imag(V), real(H), imag(H), h_qd_arrayant.azimuth_grid, h_qd_arrayant.elevation_grid, ...
+    h_qd_arrayant.Pelement_position(:,i_element) );
 
 clear V;
 clear H;
 
 % It is not possible to rotate a subset of elements if the angular grid needs to be interpolated.
-if ~rotate_all && (h_qd_arrayant.no_az ~= numel(azimuth_grid) || h_qd_arrayant.no_el ~= numel(elevation_grid) )
+if ~rotate_all && (h_qd_arrayant.no_az ~= numel(pat.azimuth_grid) || h_qd_arrayant.no_el ~= numel(pat.elevation_grid) )
     error('QuaDRiGa:qd_arrayant:rotate_pattern',...
         'Pattern requires interpolation of the angle grid. You cannot select individual elements in this case.')
 end
 
-if h_qd_arrayant.no_az ~= numel(azimuth_grid) || ...
-        h_qd_arrayant.no_el ~= numel(elevation_grid) || ...
-        any(h_qd_arrayant.azimuth_grid - azimuth_grid' ~= 0) || ...
-        any(h_qd_arrayant.elevation_grid - elevation_grid' ~= 0) 
-    h_qd_arrayant.set_grid(azimuth_grid, elevation_grid, 0);
+if h_qd_arrayant.no_az ~= numel(pat.azimuth_grid) || ...
+        h_qd_arrayant.no_el ~= numel(pat.elevation_grid) || ...
+        any(h_qd_arrayant.azimuth_grid - pat.azimuth_grid ~= 0) || ...
+        any(h_qd_arrayant.elevation_grid - pat.elevation_grid ~= 0) 
+    h_qd_arrayant.set_grid(pat.azimuth_grid, pat.elevation_grid, 0);
 end
 
-h_qd_arrayant.PFa(:,:,i_element) = complex( Vr, Vi );
-h_qd_arrayant.PFb(:,:,i_element) = complex( Hr, Hi );
-h_qd_arrayant.Pelement_position(:,i_element) = element_pos;
+h_qd_arrayant.PFa(:,:,i_element) = complex( pat.e_theta_re, pat.e_theta_im );
+h_qd_arrayant.PFb(:,:,i_element) = complex( pat.e_phi_re, pat.e_phi_im );
+h_qd_arrayant.Pelement_position(:,i_element) = pat.element_pos;
 h_qd_arrayant.Pphase_diff = [];
 
 end

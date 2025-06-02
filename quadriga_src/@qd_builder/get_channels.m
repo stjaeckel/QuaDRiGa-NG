@@ -1,4 +1,4 @@
-function h_channel = get_channels( h_builder, use_single_precision, vb_dots, only_coeff )
+function h_channel = get_channels( h_builder, vb_dots, only_coeff )
 %GET_CHANNELS Calculate the channel coefficients
 %
 % Calling object:
@@ -28,12 +28,6 @@ function h_channel = get_channels( h_builder, use_single_precision, vb_dots, onl
 
 if ~exist( 'vb_dots','var' ) || isempty( vb_dots )
     vb_dots = [];
-end
-
-if ~exist( 'use_single_precision','var' ) || isempty( use_single_precision )
-    use_single_precision = false;
-else
-    use_single_precision = logical( use_single_precision );
 end
 
 if ~exist( 'only_coeff','var' ) || isempty( only_coeff )
@@ -84,7 +78,7 @@ if numel(h_builder) > 1
     for i_cb = 1 : numel(h_builder)
         [ i1,i2,i3,i4 ] = qf.qind2sub( sic, i_cb );
         if h_builder( i1,i2,i3,i4 ).no_rx_positions > 0
-            tmp = h_builder( i1,i2,i3,i4 ).get_channels( use_single_precision, vb_dots(i_cb) );
+            tmp = h_builder( i1,i2,i3,i4 ).get_channels( vb_dots(i_cb) );
             h_channel( 1, cnt : cnt+size(tmp,2)-1 ) = tmp;
             cnt = cnt + size(tmp,2);
         end
@@ -105,14 +99,7 @@ else
     if isempty( h_builder.taus )
         error('QuaDRiGa:qd_builder:get_channels','Small-scale fading parameters have not been generated yet.');
     end
-
-    % Get the precision string
-    if use_single_precision
-        precision = 'single';
-    else
-        precision = 'double';
-    end
-    
+   
     % Check if the builder is a dual-mobility builder and that the inputs are correctly formatted
     dual_mobility = h_builder.dual_mobility;
     if dual_mobility == -1
@@ -171,7 +158,7 @@ else
     if only_coeff
         h_channel = zeros(h_builder.rx_array(1,1).no_elements, ...
             h_builder.tx_array(1,1).no_elements, ...
-            h_builder.NumClusters, h_builder.no_rx_positions, 'single');
+            h_builder.NumClusters, h_builder.no_rx_positions );
     else
         h_channel = qd_channel;
     end
@@ -213,53 +200,31 @@ else
         % Extract TX antenna data
         if ~qf.eqo( h_builder.tx_array(1,i_mobile), tx_reference )
             tx_reference = h_builder.tx_array(1,i_mobile);
-            if use_single_precision
-                tx_eth_re = single( real( h_builder.tx_array(1,i_mobile).Fa ));
-                tx_eth_im = single( imag( h_builder.tx_array(1,i_mobile).Fa ));
-                tx_eph_re = single( real( h_builder.tx_array(1,i_mobile).Fb ));
-                tx_eph_im = single( imag( h_builder.tx_array(1,i_mobile).Fb ));
-                tx_azgrd  = single( h_builder.tx_array(1,i_mobile).azimuth_grid );
-                tx_elgrd  = single( h_builder.tx_array(1,i_mobile).elevation_grid );
-                tx_el_pos = single( h_builder.tx_array(1,i_mobile).element_position );
-                tx_cpl_re = single( real( h_builder.tx_array(1,i_mobile).coupling ));
-                tx_cpl_im = single( imag( h_builder.tx_array(1,i_mobile).coupling ));
-            else
-                tx_eth_re = double( real( h_builder.tx_array(1,i_mobile).Fa ));
-                tx_eth_im = double( imag( h_builder.tx_array(1,i_mobile).Fa ));
-                tx_eph_re = double( real( h_builder.tx_array(1,i_mobile).Fb ));
-                tx_eph_im = double( imag( h_builder.tx_array(1,i_mobile).Fb ));
-                tx_azgrd  = double( h_builder.tx_array(1,i_mobile).azimuth_grid );
-                tx_elgrd  = double( h_builder.tx_array(1,i_mobile).elevation_grid );
-                tx_el_pos = double( h_builder.tx_array(1,i_mobile).element_position );
-                tx_cpl_re = double( real( h_builder.tx_array(1,i_mobile).coupling ));
-                tx_cpl_im = double( imag( h_builder.tx_array(1,i_mobile).coupling ));
-            end
+            tx_ant = struct( ...
+                'e_theta_re', real( h_builder.tx_array(1,i_mobile).Fa ), ...
+                'e_theta_im', imag( h_builder.tx_array(1,i_mobile).Fa ), ...
+                'e_phi_re', real( h_builder.tx_array(1,i_mobile).Fb ), ...
+                'e_phi_im', imag( h_builder.tx_array(1,i_mobile).Fb ), ...
+                'azimuth_grid', h_builder.tx_array(1,i_mobile).azimuth_grid, ...
+                'elevation_grid', h_builder.tx_array(1,i_mobile).elevation_grid, ...
+                'element_pos', h_builder.tx_array(1,i_mobile).element_position, ...
+                'coupling_re', real( h_builder.tx_array(1,i_mobile).coupling ), ...
+                'coupling_im', imag( h_builder.tx_array(1,i_mobile).coupling ) );
         end
 
         % Extract RX antenna data
         if ~qf.eqo( h_builder.rx_array(1,i_mobile), rx_reference )
             rx_reference = h_builder.rx_array(1,i_mobile);
-            if use_single_precision
-                rx_eth_re = single( real( h_builder.rx_array(1,i_mobile).Fa ));
-                rx_eth_im = single( imag( h_builder.rx_array(1,i_mobile).Fa ));
-                rx_eph_re = single( real( h_builder.rx_array(1,i_mobile).Fb ));
-                rx_eph_im = single( imag( h_builder.rx_array(1,i_mobile).Fb ));
-                rx_azgrd  = single( h_builder.rx_array(1,i_mobile).azimuth_grid );
-                rx_elgrd  = single( h_builder.rx_array(1,i_mobile).elevation_grid );
-                rx_el_pos = single( h_builder.rx_array(1,i_mobile).element_position );
-                rx_cpl_re = single( real( h_builder.rx_array(1,i_mobile).coupling ));
-                rx_cpl_im = single( imag( h_builder.rx_array(1,i_mobile).coupling ));
-            else
-                rx_eth_re = double( real( h_builder.rx_array(1,i_mobile).Fa ));
-                rx_eth_im = double( imag( h_builder.rx_array(1,i_mobile).Fa ));
-                rx_eph_re = double( real( h_builder.rx_array(1,i_mobile).Fb ));
-                rx_eph_im = double( imag( h_builder.rx_array(1,i_mobile).Fb ));
-                rx_azgrd  = double( h_builder.rx_array(1,i_mobile).azimuth_grid );
-                rx_elgrd  = double( h_builder.rx_array(1,i_mobile).elevation_grid );
-                rx_el_pos = double( h_builder.rx_array(1,i_mobile).element_position );
-                rx_cpl_re = double( real( h_builder.rx_array(1,i_mobile).coupling ));
-                rx_cpl_im = double( imag( h_builder.rx_array(1,i_mobile).coupling ));
-            end
+            rx_ant = struct( ...
+                'e_theta_re', real( h_builder.rx_array(1,i_mobile).Fa ), ...
+                'e_theta_im', imag( h_builder.rx_array(1,i_mobile).Fa ), ...
+                'e_phi_re', real( h_builder.rx_array(1,i_mobile).Fb ), ...
+                'e_phi_im', imag( h_builder.rx_array(1,i_mobile).Fb ), ...
+                'azimuth_grid', h_builder.rx_array(1,i_mobile).azimuth_grid, ...
+                'elevation_grid', h_builder.rx_array(1,i_mobile).elevation_grid, ...
+                'element_pos', h_builder.rx_array(1,i_mobile).element_position, ...
+                'coupling_re', real( h_builder.rx_array(1,i_mobile).coupling ), ...
+                'coupling_im', imag( h_builder.rx_array(1,i_mobile).coupling ) );
         end
 
         % Get the list of zero-power paths - we do not return paths with zero-power
@@ -273,8 +238,8 @@ else
         n_paths     = sum( iPath );                                 % Number od (sub-)paths
         n_subpaths  = h_builder.NumSubPaths( iClst );               % Number of paths per clusters (vector)
         n_snapshots = h_builder.rx_track(1,i_mobile).no_snapshots;  % Number of snapshots along the track segment
-        n_tx_ports  = size( tx_cpl_re, 2 );                         % Number of transmit antenna ports
-        n_rx_ports  = size( rx_cpl_re, 2 );                         % Number of transmit antenna ports
+        n_tx_ports  = size( tx_ant.coupling_re, 2 );                % Number of transmit antenna ports
+        n_rx_ports  = size( rx_ant.coupling_re, 2 );                % Number of transmit antenna ports
         n_links     = n_tx_ports * n_rx_ports;                      % Number of MIMO links in the output
         initial_pos = h_builder.rx_track(1,i_mobile).segment_index( min( [h_builder.rx_track(1,i_mobile).no_segments,2] ));
 
@@ -286,24 +251,20 @@ else
         end
 
         % Extract polarization coupling Matrix in interleaved form
-        M = zeros( 8, n_paths, precision );
+        M = zeros( 8, n_paths );
         M([1,3,5,7],:) = real( h_builder.xprmat(:,iPath,i_mobile) );
         M([2,4,6,8],:) = imag( h_builder.xprmat(:,iPath,i_mobile) );
 
         % Set the initial path gain to 1, the correct values are applied later
-        path_gain = ones( 1, n_paths, precision );
+        path_gain = ones( 1, n_paths );
 
         % Extract the random initial phases
-        if use_single_precision
-            pin = single( h_builder.pin( i_mobile, iPath ) );
-        else
-            pin = double( h_builder.pin( i_mobile, iPath ) );
-        end
+        pin = double( h_builder.pin( i_mobile, iPath ) );
 
         % Placeholder for the coefficient calculation
-        coeff = zeros( n_links, n_clusters, n_snapshots, precision );   % Coefficients
-        delay = zeros( n_links, n_clusters, n_snapshots, precision );   % Delays
-        ppat  = zeros( n_links, n_clusters, n_snapshots, precision );   % Radiated power
+        coeff = zeros( n_links, n_clusters, n_snapshots );   % Coefficients
+        delay = zeros( n_links, n_clusters, n_snapshots );   % Delays
+        ppat  = zeros( n_links, n_clusters, n_snapshots );   % Radiated power
 
         % Extract TX and RX position
         tx_position = h_builder.tx_position(:,i_mobile);
@@ -315,13 +276,8 @@ else
             % Get the angles of the subpaths and perform random coupling.
             % Remove values that have 0-Power using "iPath" and "iClst"
             [ aod,eod,aoa,eoa ] = get_subpath_angles( h_builder, i_mobile, use_laplacian_pas );
-            if use_single_precision
-                aod = single( aod(:,iPath) ); eod = single( eod(:,iPath) );
-                aoa = single( aoa(:,iPath) ); eoa = single( eoa(:,iPath) );
-            else
-                aod = double( aod(:,iPath) ); eod = double( eod(:,iPath) );
-                aoa = double( aoa(:,iPath) ); eoa = double( eoa(:,iPath) );
-            end
+            aod = double( aod(:,iPath) ); eod = double( eod(:,iPath) );
+            aoa = double( aoa(:,iPath) ); eoa = double( eoa(:,iPath) );
 
             % Get the RX position relative to the track start
             tmp = h_builder.rx_track(1,i_mobile).positions;
@@ -329,18 +285,13 @@ else
 
         else % Spherical waves
             % Calculate the scatterer positions for each sub-path
-            if use_single_precision
-                fbs_pos = single( h_builder.fbs_pos(:,iPath,i_mobile) );
-                lbs_pos = single( h_builder.lbs_pos(:,iPath,i_mobile) );
-            else
-                fbs_pos = double( h_builder.fbs_pos(:,iPath,i_mobile) );
-                lbs_pos = double( h_builder.lbs_pos(:,iPath,i_mobile) );
-            end
+            fbs_pos = double( h_builder.fbs_pos(:,iPath,i_mobile) );
+            lbs_pos = double( h_builder.lbs_pos(:,iPath,i_mobile) );
         end
 
         % In case of ground reflection, store the exact reflection points for each snapshot
         if use_ground_reflection
-            gr_pos = zeros( 3, n_snapshots, precision );
+            gr_pos = zeros( 3, n_snapshots );
         end
 
         for i_snapshot = 1 : n_snapshots
@@ -359,11 +310,7 @@ else
             % Calculate the total path length for each sub-path
             if i_snapshot == 1 || ~use_3GPP_baseline
                 dist_rx_tx = sqrt(sum( ( rx_position - tx_position ).^2));
-                if use_single_precision
-                    path_length = single( clst_expand( dist_rx_tx + h_builder.taus( i_mobile, iClst ) * 299792458, n_subpaths ) );
-                else
-                    path_length = double( clst_expand( dist_rx_tx + h_builder.taus( i_mobile, iClst ) * 299792458, n_subpaths ) );
-                end
+                path_length = double( clst_expand( dist_rx_tx + h_builder.taus( i_mobile, iClst ) * 299792458, n_subpaths ) );
             end
 
             % Special case "ground_reflection"
@@ -417,16 +364,12 @@ else
 
             % Get the MIMO channel coefficients from "quadriga_lib", outputs have size [n_rx_ports, n_tx_ports, n_paths]
             if ~use_3GPP_baseline % Spherical waves - claculate coefficients for each snapshot
-                [coeff_re, coeff_im, delay_re] = quadriga_lib.get_channels_spherical( ...
-                    tx_eth_re, tx_eth_im, tx_eph_re, tx_eph_im, tx_azgrd, tx_elgrd, tx_el_pos, tx_cpl_re, tx_cpl_im, ...
-                    rx_eth_re, rx_eth_im, rx_eph_re, rx_eph_im, rx_azgrd, rx_elgrd, rx_el_pos, rx_cpl_re, rx_cpl_im, ...
+                [coeff_re, coeff_im, delay_re] = quadriga_lib.get_channels_spherical( tx_ant, rx_ant, ...
                     fbs_pos, lbs_pos, path_gain, path_length, M, ...
                     tx_position, tx_orientation(:,i_snapshot), rx_position, rx_orientation(:,i_snapshot), center_frequency, use_absolute_delays );
 
             elseif i_snapshot == 1 % Planar waves - claculate coefficients only once
-                [coeff_re, coeff_im, delay_re, rx_Doppler] = quadriga_lib.get_channels_planar( ...
-                    tx_eth_re, tx_eth_im, tx_eph_re, tx_eph_im, tx_azgrd, tx_elgrd, tx_el_pos, tx_cpl_re, tx_cpl_im, ...
-                    rx_eth_re, rx_eth_im, rx_eph_re, rx_eph_im, rx_azgrd, rx_elgrd, rx_el_pos, rx_cpl_re, rx_cpl_im, ...
+                [coeff_re, coeff_im, delay_re, rx_Doppler] = quadriga_lib.get_channels_planar( tx_ant, rx_ant, ...
                     aod, eod, aoa, eoa, path_gain, path_length, M, ...
                     tx_position, tx_orientation(:,1), rx_position, rx_orientation(:,1), center_frequency, use_absolute_delays );
             end

@@ -64,7 +64,7 @@ if ~( size(electric_tilt,1) == 1 && isnumeric(electric_tilt) && isreal(electric_
 end
 
 % Generate omni antenna as default
-h_qd_arrayant = gen_arrayant_omni;
+h_qd_arrayant = qd_arrayant('omni');
 
 phi = h_qd_arrayant.azimuth_grid*180/pi;
 Ah  = -min( 12*(phi./phi_3dB).^2 , rear_gain );

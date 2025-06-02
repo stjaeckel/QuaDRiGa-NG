@@ -16,7 +16,7 @@ function [ directivity_dBi, gain_dBi ] = calc_gain( h_qd_arrayant, i_element )
 %   Maximum gain of the antenna in dBi (gain = directivity - losses)
 %
 %
-% QuaDRiGa Copyright (C) 2011-2023
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.

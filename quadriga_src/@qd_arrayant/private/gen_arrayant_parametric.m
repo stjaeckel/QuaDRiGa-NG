@@ -37,7 +37,7 @@ if ~exist('Din','var') || isempty( Din )
 end
 
 % Generate omni antenna as default
-h_qd_arrayant = gen_arrayant_omni;
+h_qd_arrayant =  qd_arrayant('omni');
 
 phi = h_qd_arrayant.azimuth_grid;
 theta = h_qd_arrayant.elevation_grid;

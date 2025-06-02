@@ -253,7 +253,7 @@ switch usage
     case 'quick'
         for i_bs = 1 : n_bs
             %h_channel = channel_builder.get_los_channels(h_builder(1,i_bs));
-            coeff = get_los_channels( h_builder(1,i_bs), 'single','coeff');
+            coeff = get_los_channels( h_builder(1,i_bs),'coeff');
             
             pow = permute(abs(coeff).^2, [3, 1, 2]);
             pow = reshape(pow, n_x_coords, n_y_coords, size( coeff, 1 ), size( coeff, 2 ));
@@ -268,7 +268,7 @@ switch usage
         
     case 'phase'
         for i_bs = 1:n_bs
-            coeff = get_los_channels( h_builder(1,i_bs), 'single','coeff');
+            coeff = get_los_channels( h_builder(1,i_bs),'coeff');
 
             cf = permute( coeff , [3,1,2] );
             cf = reshape( cf , n_x_coords , n_y_coords , size( coeff, 1 ), size( coeff, 2 ) );

@@ -23,7 +23,7 @@ classdef qd_arrayant < handle
 %    a.visualize;                         % Show the output
 %
 %
-% QuaDRiGa Copyright (C) 2011-2021
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.

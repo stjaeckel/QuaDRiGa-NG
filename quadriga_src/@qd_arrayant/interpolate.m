@@ -75,7 +75,7 @@ function [ V, H, dist, azimuth, elevation ] = interpolate( h_qd_arrayant, azimut
 %   elevation angles.
 %
 %
-% QuaDRiGa Copyright (C) 2011-2021
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -146,27 +146,18 @@ if ~per_element_interpol
     elevation = elevation(:)';
 end
 
-% Adjust input types
-if ~isa( azimuth, 'double' ) && use_double
-    azimuth = double( azimuth );
-end
-if ~isa( elevation, 'double' ) && use_double
-    elevation = double( elevation );
-end
-if ~isa( orientation, 'double' ) && use_double
-    orientation = double( orientation );
-end
-
 if nargout < 4
-    [Vr, Vi, Hr, Hi, dist] = quadriga_lib.arrayant_interpolate( real(h_qd_arrayant.PFa), imag(h_qd_arrayant.PFa), ...
+    [Vr, Vi, Hr, Hi, dist] = quadriga_lib.arrayant_interpolate([], azimuth, elevation, ...
+        i_element, orientation, element_position, ...
+        real(h_qd_arrayant.PFa), imag(h_qd_arrayant.PFa), ...
         real(h_qd_arrayant.PFb), imag(h_qd_arrayant.PFb), ...
-        h_qd_arrayant.azimuth_grid, h_qd_arrayant.elevation_grid, azimuth, elevation, ...
-        i_element, orientation, element_position );
+        h_qd_arrayant.azimuth_grid, h_qd_arrayant.elevation_grid );
 else
-    [Vr, Vi, Hr, Hi, dist, azimuth, elevation ] = quadriga_lib.arrayant_interpolate( real(h_qd_arrayant.PFa), imag(h_qd_arrayant.PFa), ...
+    [Vr, Vi, Hr, Hi, dist, azimuth, elevation] = quadriga_lib.arrayant_interpolate([], azimuth, elevation, ...
+        i_element, orientation, element_position, ...
+        real(h_qd_arrayant.PFa), imag(h_qd_arrayant.PFa), ...
         real(h_qd_arrayant.PFb), imag(h_qd_arrayant.PFb), ...
-        h_qd_arrayant.azimuth_grid, h_qd_arrayant.elevation_grid, azimuth, elevation, ...
-        i_element, orientation, element_position );
+        h_qd_arrayant.azimuth_grid, h_qd_arrayant.elevation_grid );
 end
 V = complex(Vr,Vi);
 H = complex(Hr,Hi);

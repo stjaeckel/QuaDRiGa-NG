@@ -18,7 +18,7 @@ function xml_write( h_array, fn, id )
 %   in the same file, each antenna must be identified by an unique ID.
 %
 %
-% QuaDRiGa Copyright (C) 2011-2023
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -63,26 +63,23 @@ for n = 1 : a_cnt
         id = n;
     end
     
-    azimuth_grid    = double( a(1,n).azimuth_grid );
-    elevation_grid  = double( a(1,n).elevation_grid );
-    e_theta_re      = double( real( a(1,n).Fa ));
-    e_theta_im      = double( imag( a(1,n).Fa ));
-    e_phi_re        = double( real( a(1,n).Fb ));
-    e_phi_im        = double( imag( a(1,n).Fb ));
-    element_pos     = double( a(1,n).element_position );
-    coupling_re     = double( real( a(1,n).coupling ));
-    coupling_im     = double( imag( a(1,n).coupling ));
-    center_freq     = double( a(1,n).center_frequency );
-    name            = a(1,n).name;
+    pat = struct( ...
+        'azimuth_grid',   a(1,n).azimuth_grid, ...
+        'elevation_grid', a(1,n).elevation_grid, ...
+        'e_theta_re',     real( a(1,n).Fa ), ...
+        'e_theta_im',     imag( a(1,n).Fa ), ...
+        'e_phi_re',       real( a(1,n).Fb ), ...
+        'e_phi_im',       imag( a(1,n).Fb ), ...
+        'element_pos',    a(1,n).element_position, ...
+        'coupling_re',    real( a(1,n).coupling ), ...
+        'coupling_im',    imag( a(1,n).coupling ), ...
+        'center_freq',    a(1,n).center_frequency, ...
+        'name',           a(1,n).name );
     
     if n < a_cnt
-        id_file = quadriga_lib.arrayant_qdant_write( fn, e_theta_re, e_theta_im, e_phi_re, e_phi_im, ...
-            azimuth_grid, elevation_grid, element_pos, coupling_re, coupling_im, center_freq, name,...
-            id);
+        id_file = quadriga_lib.arrayant_qdant_write( fn, pat, id );
     else
-        id_file = quadriga_lib.arrayant_qdant_write( fn, e_theta_re, e_theta_im, e_phi_re, e_phi_im, ...
-            azimuth_grid, elevation_grid, element_pos, coupling_re, coupling_im, center_freq, name,...
-            id, a_ind);
+        id_file = quadriga_lib.arrayant_qdant_write( fn, pat, id, a_ind);
     end
     if id_file ~= id
         error('QuaDRiGa:qd_arrayant:xml_write','Something is wrong.');

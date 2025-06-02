@@ -19,7 +19,7 @@ function combine_pattern( h_qd_arrayant, center_frequency )
 %   multiples of the carrier wavelength.
 %
 %
-% QuaDRiGa Copyright (C) 2011-2023
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -48,27 +48,20 @@ if ~exist('center_frequency','var')
     center_frequency = h_qd_arrayant.center_frequency;
 end
 
-% Determine if we use single or double precision
-if isa( h_qd_arrayant.Fa, 'single' )
-    single( h_qd_arrayant );
-    precision = 'single';
-else
-    double( h_qd_arrayant );
-    precision = 'double';
-end
-
 % Call quadriga-lib library function
-[ Vr,Vi,Hr,Hi ] = quadriga_lib.arrayant_combine_pattern( real(h_qd_arrayant.PFa), imag(h_qd_arrayant.PFa), ...
+pat = quadriga_lib.arrayant_combine_pattern([], center_frequency, [], [], ...
+        real(h_qd_arrayant.PFa), imag(h_qd_arrayant.PFa), ...
         real(h_qd_arrayant.PFb), imag(h_qd_arrayant.PFb), ...
         h_qd_arrayant.azimuth_grid, h_qd_arrayant.elevation_grid, ...
-        h_qd_arrayant.element_position, real(h_qd_arrayant.coupling), imag(h_qd_arrayant.coupling), center_frequency);
+        h_qd_arrayant.element_position, real(h_qd_arrayant.coupling), imag(h_qd_arrayant.coupling), ...
+        h_qd_arrayant.center_frequency, h_qd_arrayant.name);
 
 % Write the output pattern
-no_elements = size( Vr,3 );
-h_qd_arrayant.PFa = complex( Vr, Vi );
-h_qd_arrayant.PFb = complex( Hr, Hi );
-h_qd_arrayant.Pelement_position = zeros(3, no_elements, precision);
-h_qd_arrayant.Pcoupling = eye( no_elements, precision );
+no_elements = size( pat.e_theta_re, 3 );
+h_qd_arrayant.PFa = complex( pat.e_theta_re, pat.e_theta_im );
+h_qd_arrayant.PFb = complex( pat.e_phi_re, pat.e_phi_im );
+h_qd_arrayant.Pelement_position = zeros(3, no_elements);
+h_qd_arrayant.Pcoupling = eye( no_elements );
 h_qd_arrayant.Pphase_diff = [];
 h_qd_arrayant.Pno_elements = no_elements;
 

@@ -31,7 +31,7 @@ function [ beamwidth_az, beamwidth_el, az_point_ang, el_point_ang ] =...
 %   The elevation pointing angle for the main beam in [deg]
 %
 %
-% QuaDRiGa Copyright (C) 2011-2019
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.

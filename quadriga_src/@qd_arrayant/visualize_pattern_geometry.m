@@ -163,10 +163,10 @@ a = h_qd_arrayant.sub_array( i_element );
 % Get angles for pattern interpoaltion
 [azimuth, elevation] = quadriga_lib.cart2geo(vertices');
 
-% Interpoalte pattersn
+% Interpoalte pattern
 [V_re, V_im, H_re, H_im] = ...
-    quadriga_lib.arrayant_interpolate( real(a.Fa), imag(a.Fa), real(a.Fb), imag(a.Fb), ...
-    a.azimuth_grid, a.elevation_grid, azimuth', elevation', 1, orientation, a.element_position );
+    quadriga_lib.arrayant_interpolate( [], azimuth', elevation', 1, orientation, a.element_position, ...
+    real(a.Fa), imag(a.Fa), real(a.Fb), imag(a.Fb), a.azimuth_grid, a.elevation_grid  );
 
 % Calc power scaling
 P = V_re.^2 + V_im.^2 + H_re.^2 + H_im.^2;
@@ -182,8 +182,8 @@ vertices = vertices + position' + a.element_position';
 % Get colormap
 [azimuth, elevation] = quadriga_lib.cart2geo(center');
 [V_re, V_im, H_re, H_im] = ...
-    quadriga_lib.arrayant_interpolate( real(a.Fa), imag(a.Fa), real(a.Fb), imag(a.Fb), ...
-    a.azimuth_grid, a.elevation_grid, azimuth', elevation', 1, orientation, a.element_position );
+    quadriga_lib.arrayant_interpolate( [], azimuth', elevation', 1, orientation, a.element_position, ...
+    real(a.Fa), imag(a.Fa), real(a.Fb), imag(a.Fb), a.azimuth_grid, a.elevation_grid );
 P = V_re.^2 + V_im.^2 + H_re.^2 + H_im.^2;
 P = P./max(P);
 P = 10*log10(P);
