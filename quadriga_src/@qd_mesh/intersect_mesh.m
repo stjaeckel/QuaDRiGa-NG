@@ -26,7 +26,7 @@ function [ islos, no_trans, fbs, sbs, iFBS, iSBS ] = intersect_mesh( h_mesh, ori
 %   Logical vector indicating if an intersection happened; Dimensions: (1xN)
 %
 %   no_trans
-%   Number of intersections for each ray; uint32 vector; Dimensions: (1xN)
+%   Number of intersections for each ray; uint64 vector; Dimensions: (1xN)
 %
 %   fbs
 %   First interaction point; single precision; Dimensions: (3xN)
@@ -35,10 +35,10 @@ function [ islos, no_trans, fbs, sbs, iFBS, iSBS ] = intersect_mesh( h_mesh, ori
 %   Second interaction point; single precision; Dimensions: (3xN)
 %
 %   iFBS
-%   Index of the first mesh element that was hit by the ray; uint32; Dimensions: (1xN)
+%   Index of the first mesh element that was hit by the ray; uint64; Dimensions: (1xN)
 %
 %   iFBS
-%   Index of the second mesh element that was hit by the ray; uint32; Dimensions: (1xN)
+%   Index of the second mesh element that was hit by the ray; uint64; Dimensions: (1xN)
 %
 %
 % QuaDRiGa Copyright (C) 2011-2024
@@ -87,10 +87,10 @@ if ~exist('obj_id','var') || isempty( obj_id )
     obj_id = true(size(h_mesh.obj_index));
 else
     use_object_id = true;
-    obj_index = uint32( h_mesh.obj_index );
+    obj_index = uint64( h_mesh.obj_index );
     ii = false( size( obj_index ) );
     for n = 1 : numel( obj_id )
-        ii = ii | obj_index == uint32( obj_id(n) );
+        ii = ii | obj_index == uint64( obj_id(n) );
     end
     obj_id = ii;
 end
@@ -114,6 +114,6 @@ else
     [ fbs, sbs, no_trans, iFBS, iSBS ] = quadriga_lib.ray_triangle_intersect( orig', dest', mesh, h_mesh.Psub_mesh_index - 1 );
 end
 
-islos = no_trans == uint32(0);
+islos = no_trans == uint64(0);
 
 end

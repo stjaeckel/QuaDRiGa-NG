@@ -36,26 +36,26 @@ properties(Dependent)
     %   x, y and z-coordinates of the vertices. Data is stored in single precision. 
     vert
     
-    % List of triangular faces: [ 3 x no_mesh ] - uint32
+    % List of triangular faces: [ 3 x no_mesh ] - uint64
     %   The indices pointing to a closed set of 3 vertices defining a triangle face. Indices are
-    %   stored in uint32 format.
+    %   stored in uint64 format.
     face
 
-    % List of mesh segments [ no_seg ] - uint32
+    % List of mesh segments [ no_seg ] - uint64
     %   Computational performance can be improved by splitting the mesh into sub-segments and
     %   calculating an index.
     sub_mesh_index
 
     % Object index for each mesh face
     %   Faces can be grouped into objects, e.g. buildings, trees, etc. Each face is assigned an
-    %   object index from the list of objects in the qd mesh class. Indices are stored in uint32
+    %   object index from the list of objects in the qd mesh class. Indices are stored in uint64
     %   format. 
     obj_index
     
     % Material index for each mesh face
     %   Each face gets assigned a material from the material list. Objects can consist of different
     %   materials, e.g. a building can have concrete walls and glass windows. Indices are stored in
-    %   uint32 format. 
+    %   uint64 format. 
     mtl_index
     
     % Object names
@@ -193,15 +193,15 @@ methods
         if numel(value) ~= 1
             error('QuaDRiGa:qd_mesh','??? "no_obj" must be scalar.')
         end
-        value = uint32( value );
-        no_exist = uint32( size( h_mesh(1,1).Pobj_name ,2 ) ); 
+        value = uint64( value );
+        no_exist = uint64( size( h_mesh(1,1).Pobj_name ,2 ) ); 
         if value == 0
             error('QuaDRiGa:qd_mesh','??? "no_obj" canot be 0.')
         end
         if value < no_exist
             if ~isempty( h_mesh(1,1).Pobj_index )
                 warning('QuaDRiGa:qd_mesh','??? Replacing removed objects with default (first) object.')
-                h_mesh(1,1).Pobj_index( h_mesh(1,1).Pobj_index > value ) = uint32(1);
+                h_mesh(1,1).Pobj_index( h_mesh(1,1).Pobj_index > value ) = uint64(1);
             end
             h_mesh(1,1).Pobj_name = h_mesh(1,1).Pobj_name(1:value);
             h_mesh(1,1).Pobj_att_par = h_mesh(1,1).Pobj_att_par(:,1:value);
@@ -220,15 +220,15 @@ methods
         if numel(value) ~= 1
             error('QuaDRiGa:qd_mesh','??? "no_mtl" must be scalar.')
         end
-        value = uint32( value );
-        no_exist = uint32( size( h_mesh(1,1).Pmtl_name ,2 ) ); 
+        value = uint64( value );
+        no_exist = uint64( size( h_mesh(1,1).Pmtl_name ,2 ) ); 
         if value == 0
             error('QuaDRiGa:qd_mesh','??? "no_mtl" canot be 0.')
         end
         if value < no_exist
             if ~isempty( h_mesh(1,1).Pmtl_index )
                 warning('QuaDRiGa:qd_mesh','??? Replacing removed materials with default (first) material.')
-                h_mesh(1,1).Pmtl_index( h_mesh(1,1).Pmtl_index > value ) = uint32(1);
+                h_mesh(1,1).Pmtl_index( h_mesh(1,1).Pmtl_index > value ) = uint64(1);
             end
             h_mesh(1,1).Pmtl_name = h_mesh(1,1).Pmtl_name(1:value);
             h_mesh(1,1).Pmtl_color = h_mesh(1,1).Pmtl_color(:,1:value);
@@ -268,13 +268,13 @@ methods
         if size( value,1 ) ~= 3
             error('QuaDRiGa:qd_mesh','??? "face" must have 3 rows.')
         end
-        if ~isa(value,'uint32')
-           value = uint32( value ); 
+        if ~isa(value,'uint64')
+           value = uint64( value ); 
         end
         if max( value(:) ) > size( h_mesh(1,1).Pvert,2 )
             error('QuaDRiGa:qd_mesh','??? "face" index cannot exceed number of vertices.')
         end
-        value( value == 0 ) = uint32(1);
+        value( value == 0 ) = uint64(1);
         no_value = size( value, 2 );
         no_exist = size( h_mesh(1,1).Pface,2 );
         if no_value < no_exist
@@ -282,8 +282,8 @@ methods
             h_mesh(1,1).Pmtl_index = h_mesh(1,1).Pmtl_index(:,1:no_value);
         elseif no_value > no_exist
             no_new = no_value - no_exist;
-            h_mesh(1,1).Pobj_index = [ h_mesh(1,1).Pobj_index, ones(1,no_new,'uint32') ];
-            h_mesh(1,1).Pmtl_index = [ h_mesh(1,1).Pmtl_index, ones(1,no_new,'uint32') ];
+            h_mesh(1,1).Pobj_index = [ h_mesh(1,1).Pobj_index, ones(1,no_new,'uint64') ];
+            h_mesh(1,1).Pmtl_index = [ h_mesh(1,1).Pmtl_index, ones(1,no_new,'uint64') ];
         end
         h_mesh(1,1).Pface = value;
     end
@@ -294,13 +294,13 @@ methods
             error('QuaDRiGa:qd_mesh','??? Number of elements in "obj_index" must match number of faces.')
         end
         value = reshape( value, 1, [] );
-        if ~isa(value,'uint32')
-           value = uint32( value ); 
+        if ~isa(value,'uint64')
+           value = uint64( value ); 
         end
         if max( value ) > size( h_mesh(1,1).Pobj_name ,2 )
             error('QuaDRiGa:qd_mesh','??? "obj_index" cannot exceed number of objects. Set objects first.')
         end
-        value( value == 0 ) = uint32(1);
+        value( value == 0 ) = uint64(1);
         h_mesh(1,1).Pobj_index = value;
     end
     
@@ -310,13 +310,13 @@ methods
             error('QuaDRiGa:qd_mesh','??? Number of elements in "mtl_index" must match number of faces.')
         end
         value = reshape( value, 1, [] );
-        if ~isa(value,'uint32')
-           value = uint32( value ); 
+        if ~isa(value,'uint64')
+           value = uint64( value ); 
         end
         if max( value ) > size( h_mesh(1,1).Pmtl_name ,2 )
             error('QuaDRiGa:qd_mesh','??? "mtl_index" cannot exceed number of materials. Set materials first.')
         end
-        value( value == 0 ) = uint32(1);
+        value( value == 0 ) = uint64(1);
         h_mesh(1,1).Pmtl_index = value;
     end
     

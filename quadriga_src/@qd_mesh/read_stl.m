@@ -71,7 +71,7 @@ if all( solid == uint8( [115;111;108;105;100] ) )   % ASCII File
 else % Binary format
     
     fread(fileID,75,'*uint8');
-    no_face = fread(fileID,1,'*uint32');
+    no_face = fread(fileID,1,'*uint64');
     data = fread(fileID,[25,no_face],'*uint16');
     data = data(7:24,:);
     mesh = reshape( typecast(data(:),'single'), [], no_face )';
@@ -82,18 +82,18 @@ fclose( fileID );
 
 % Set default object index
 h_mesh.obj_name = [ h_mesh.obj_name, fname ];
-obj_mesh_index = uint32( h_mesh.no_obj );
+obj_mesh_index = uint64( h_mesh.no_obj );
 
 % Calculate vertices and faces
 vert = reshape(mesh',3,[]);
-face = reshape( uint32(size(h_mesh.vert,2)) + uint32(1:size(vert,2)), 3,[] );
+face = reshape( uint64(size(h_mesh.vert,2)) + uint64(1:size(vert,2)), 3,[] );
 
 % Write to object
 i_face = h_mesh.no_face + 1;
 h_mesh.vert = [ single(h_mesh.vert), vert ];
 h_mesh.face = [ single(h_mesh.face), face ];
 h_mesh.obj_index(i_face:end) = obj_mesh_index;
-h_mesh.mtl_index(i_face:end) = uint32(mat_id);
+h_mesh.mtl_index(i_face:end) = uint64(mat_id);
    
 % Reset sib-mesh index
 h_mesh.Psub_mesh_index = [];

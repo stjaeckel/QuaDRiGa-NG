@@ -54,8 +54,8 @@ vert = h_mesh.vert;
 if ~exist('obj_id','var') || isempty( obj_id )
     ip = true(1,size(vert,2));
 else
-    i_face = ismember( uint32( h_mesh.obj_index ), uint32( obj_id ) );
-    face = uint32( h_mesh.face );
+    i_face = ismember( uint64( h_mesh.obj_index ), uint64( obj_id ) );
+    face = uint64( h_mesh.face );
     
     % List of vertices belonging to the selected objects
     ip = face(:,i_face);
@@ -72,7 +72,7 @@ else
     
     % Copy duplicate vertices, if needed
     if ~isempty( ix )
-        iy = uint32(1:numel(ix))' + uint32( size(vert,2) );
+        iy = uint64(1:numel(ix))' + uint64( size(vert,2) );
         vert = [ vert, vert(:,ix )];
         i_face = repmat( i_face,3,1 );
         for n = 1 : numel(ix)

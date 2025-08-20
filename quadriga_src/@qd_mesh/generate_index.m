@@ -61,18 +61,18 @@ else
     % Note: si is 0-based and mi is 1-based
 
     % Add Padding
-    xi = [si ;uint32( numel(mi) )];
+    xi = [si ;uint64( numel(mi) )];
     for n = 1 : numel(si)
 
         % Face indes of the last element in the current sub-mesh
         last_sub_face = mi( xi(n+1) );
         if last_sub_face == 0
             h_mesh.Pvert = [ h_mesh.Pvert, msh( xi(n+1) , 1:3 )' ];
-            h_mesh.Pface = [ h_mesh.Pface, uint32( h_mesh.no_vert([1;1;1]) ) ];
+            h_mesh.Pface = [ h_mesh.Pface, uint64( h_mesh.no_vert([1;1;1]) ) ];
             h_mesh.Pobj_index = [ h_mesh.Pobj_index, 1 ];
             h_mesh.Pmtl_index = [ h_mesh.Pmtl_index, 1 ];
             
-            tmp = uint32( h_mesh.no_face );
+            tmp = uint64( h_mesh.no_face );
             for m = xi(n+1) - vec_size + 2 : xi(n+1)
                 if mi(m) == 0
                     mi(m) = tmp;

@@ -87,10 +87,10 @@ if ~exist('obj_id','var') || isempty( obj_id )
     obj_id_in = [];
 else
     obj_id_in = obj_id;
-    obj_index = uint32( h_mesh.obj_index );
+    obj_index = uint64( h_mesh.obj_index );
     ii = false( size( obj_index ) );
     for n = 1 : numel( obj_id )
-        ii = ii | obj_index == uint32( obj_id(n) );
+        ii = ii | obj_index == uint64( obj_id(n) );
     end
     obj_id = ii;
 end

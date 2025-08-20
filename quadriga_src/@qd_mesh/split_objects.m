@@ -42,8 +42,8 @@ else
 end
 
 obj_name = h_mesh.obj_name;
-obj_index = uint32( h_mesh.obj_index );
-no_obj = uint32( numel(obj_name) );
+obj_index = uint64( h_mesh.obj_index );
+no_obj = uint64( numel(obj_name) );
 
 if max(obj_index) > no_obj
     error('QuaDRiGa:qd_mesh:split_objects','Object indices do not match the numer of objects.');
@@ -72,11 +72,11 @@ j_face = 0;
 for n = 1 : numel(obj_id)
     io = obj_index == obj_id(n);
     if sum( io ) > 1
-        face = uint32( h_mesh.face(:,io) );
-        obj  = zeros( 1,size(face,2),'uint32' );
+        face = uint64( h_mesh.face(:,io) );
+        obj  = zeros( 1,size(face,2),'uint64' );
         cnn  = false( size(face) );
         sn   = sum(cnn);
-        i_obj = uint32( 0 );
+        i_obj = uint64( 0 );
         while any( sn < 3 )
             i_face = find( sn == 2 | sn == 1 ,1);   % Search already connected vertices
             if isempty( i_face )

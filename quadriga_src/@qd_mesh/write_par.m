@@ -60,10 +60,10 @@ end
 if ~exist('obj_id','var') || isempty( obj_id )
     obj_id = true(1,numel(h_mesh.Pobj_index));
 else
-    obj_index = uint32( h_mesh.obj_index );
+    obj_index = uint64( h_mesh.obj_index );
     ii = false( size( obj_index ) );
     for n = 1 : numel( obj_id )
-        ii = ii | obj_index == uint32( obj_id(n) );
+        ii = ii | obj_index == uint64( obj_id(n) );
     end
     obj_id = ii;
 end
@@ -78,7 +78,7 @@ fprintf(fid, '#PARAY\r\n');
 fprintf(fid, '#sourcefile: %s\r\n', fname_par);
 fprintf(fid, '#created: %s\r\n', datestr(now) );
 for im = 1 : numel( h_mesh.mtl_name )
-    if any( mtl_mesh_index == uint32(im) )
+    if any( mtl_mesh_index == uint64(im) )
         no_layers = sum( h_mesh.mtl_thickness(:,im) > 0 );
         fprintf(fid,'\nMLW, %s, %d,',h_mesh.mtl_name{im}, no_layers );
         for il = 1 : no_layers
@@ -100,9 +100,9 @@ fprintf(fid, '#PARAY\r\n');
 fprintf(fid, '#sourcefile: %s\r\n', fname_par);
 fprintf(fid, '#created: %s\r\n', datestr(now) );
 for im = 1 : numel( h_mesh.mtl_name )
-    if any( mtl_mesh_index == uint32(im) )
+    if any( mtl_mesh_index == uint64(im) )
         fprintf(fid, ['P, ',h_mesh.mtl_name{im},', 0, 3, %.10g %.10g %.10g, %.10g %.10g %.10g, %.10g %.10g %.10g\n'],...
-            mesh(mtl_mesh_index == uint32(im), : )');
+            mesh(mtl_mesh_index == uint64(im), : )');
     end
 end
 fclose( fid );

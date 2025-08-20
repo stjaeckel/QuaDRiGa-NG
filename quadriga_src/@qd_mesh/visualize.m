@@ -73,10 +73,10 @@ if exist('obj_id','var') && ~isempty( obj_id )
             obj_iid( ix(m):ix(m+1)-1 ) = true;
         end
     else
-        obj_index = uint32( h_mesh.obj_index );
+        obj_index = uint64( h_mesh.obj_index );
         ii = false( size( obj_index ) );
         for n = 1 : numel( obj_id )
-            ii = ii | obj_index == uint32( obj_id(n) );
+            ii = ii | obj_index == uint64( obj_id(n) );
         end
         obj_iid = ii;
     end
@@ -119,10 +119,10 @@ if show_sub_meshes && ~isempty( h_mesh.sub_mesh_index )
 else
     
     % Plot faces and their colors
-    mtl_index = uint32(h_mesh.mtl_index);
+    mtl_index = uint64(h_mesh.mtl_index);
     n_mtl = numel( h_mesh.mtl_name );
     for i_mtl = 1 : n_mtl
-        ii_mtl = mtl_index == uint32(i_mtl) & obj_iid;
+        ii_mtl = mtl_index == uint64(i_mtl) & obj_iid;
         if any( ii_mtl )
             C = h_mesh.mtl_color(:,i_mtl)';
             patch ('Faces', h_mesh.face(:,ii_mtl)', 'Vertices', h_mesh.vert', 'FaceColor', C, 'EdgeColor', C/2, 'FaceAlpha', alpha  );

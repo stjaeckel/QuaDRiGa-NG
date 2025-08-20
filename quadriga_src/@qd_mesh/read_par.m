@@ -111,19 +111,19 @@ fclose( fid );
 if size(mesh,1) ~= numel(mtl)-1
    error('QuaDRiGa:qd_mesh:read_par','Ooops, something went wrong.');
 end
-mtl_mesh_index = ones(1,size(mesh,1),'uint32');
+mtl_mesh_index = ones(1,size(mesh,1),'uint64');
 for im = 1 : numel( h_mesh.mtl_name )
     ind = strcmp( h_mesh.mtl_name{im}, mtl );
-    mtl_mesh_index(1,ind(1:end-1)) = uint32( im );
+    mtl_mesh_index(1,ind(1:end-1)) = uint64( im );
 end
 
 % Set default object index
-obj_mesh_index = uint32( numel( h_mesh.obj_name ) + 1 );
+obj_mesh_index = uint64( numel( h_mesh.obj_name ) + 1 );
 h_mesh.obj_name = [ h_mesh.obj_name, fname_par ];
 
 % Calculate vertices and faces
 vert = reshape(mesh',3,[]);
-face = reshape( uint32(size(h_mesh.vert,2)) + uint32(1:size(vert,2)), 3,[] );
+face = reshape( uint64(size(h_mesh.vert,2)) + uint64(1:size(vert,2)), 3,[] );
 
 % Write to object
 i_face = h_mesh.no_face + 1;

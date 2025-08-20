@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(QRT LANGUAGES C CXX)
+project(QuaDRiGa-NG LANGUAGES C CXX)
 
 # Options for Quadriga-lib components
 option(ENABLE_MATLAB "Enable MATLAB MEX API" ON)

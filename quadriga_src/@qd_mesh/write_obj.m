@@ -62,14 +62,14 @@ mtl_id = [];
 obj_name = {};
 
 % Read obj data
-m_face = uint32( h_mesh.face );
+m_face = uint64( h_mesh.face );
 m_vert = single( h_mesh.vert );
-obj_index = uint32( h_mesh.obj_index );
-mtl_index = uint32( h_mesh.mtl_index );
+obj_index = uint64( h_mesh.obj_index );
+mtl_index = uint64( h_mesh.mtl_index );
 
 io = 0;
 for n = 1 : numel( obj_id )
-    i_obj = obj_index == uint32(obj_id(n));                 % Find mesh entries for the current object
+    i_obj = obj_index == uint64(obj_id(n));                 % Find mesh entries for the current object
     if any( i_obj )
         mtl = sort( mtl_index( i_obj ) );                       % Does the object have different materials?
         mtl = mtl( [true,diff( mtl ) ~= 0] );
@@ -107,13 +107,13 @@ fid = fopen(fname, 'w');
 fprintf(fid, '# QuaDRiGa v%s OBJ File: ''%s''\r\n',qd_simulation_parameters.version, fname);
 fprintf(fid, '# quadriga-channel-model.de\r\n');
 fprintf(fid, 'mtllib %s\r\n', fname_mtl);
-vert_cnt = uint32(0);
+vert_cnt = uint64(0);
 for n = 1 : numel(obj_name)
     fprintf(fid, 'o %s\r\n', obj_name{n} );
     fprintf(fid, 'v %g %g %g\r\n', vert{n} );
     fprintf(fid, 'usemtl %s\r\n', h_mesh.mtl_name{ mtl_id(n) } );
     fprintf(fid, 'f %d %d %d\r\n', face{n}+vert_cnt );
-    vert_cnt = vert_cnt + uint32( size(vert{n},2) );
+    vert_cnt = vert_cnt + uint64( size(vert{n},2) );
 end
 fclose( fid );
 

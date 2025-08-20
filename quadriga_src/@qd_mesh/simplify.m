@@ -47,14 +47,14 @@ end
 if ~exist('obj_id','var') || isempty( obj_id )
     obj_id = 1 : numel(h_mesh.obj_name);
 end
-obj_id = uint32( obj_id );
+obj_id = uint64( obj_id );
 
 if ~exist('tolerance','var') || isempty( tolerance )
     tolerance = 0.01;
 end
 
-obj_index = uint32( h_mesh.obj_index );
-no_obj = uint32( numel(h_mesh.obj_name) );
+obj_index = uint64( h_mesh.obj_index );
+no_obj = uint64( numel(h_mesh.obj_name) );
 if max(obj_index) > no_obj
     error('QuaDRiGa:qd_mesh:simplify','Object indices do not match the numer of objects.');
 end
@@ -77,10 +77,10 @@ end
 % Remove sub_mesh_index (it will be invalid)
 h_mesh.Psub_mesh_index = [];
 
-io = uint32( 0 );                               % Object counter
+io = uint64( 0 );                               % Object counter
 vert = single( h_mesh.vert );                   % List of vertices
-face = uint32( h_mesh.face );                   % Face ids
-mtl_index = uint32( h_mesh.mtl_index );         % Material ids
+face = uint64( h_mesh.face );                   % Face ids
+mtl_index = uint64( h_mesh.mtl_index );         % Material ids
 
 % Remove faces collapsing to a line or point
 ix = any(diff(sort(face)) == 0);
@@ -148,7 +148,7 @@ for n = 1 : numel( obj_id )
         vert_out{io} = vc( :, 1:iv );
         face_out{io} = f;
         mtl_out{io} = mtl_index( i_obj );
-        obj_out{io} = ones( 1, m_face, 'uint32' ) * io;
+        obj_out{io} = ones( 1, m_face, 'uint64' ) * io;
     end
     j_face = j_face + sum(i_obj);
 end
@@ -163,13 +163,13 @@ h_mesh.Pvert = cat( 2, vert_out{:} );
 h_mesh.Pmtl_index = cat( 2, mtl_out{:} );
 h_mesh.Pobj_index = cat( 2, obj_out{:} );
 
-i_face = uint32(1);
-i_vert = uint32(0);
+i_face = uint64(1);
+i_vert = uint64(0);
 for n = 1 : io
-    j_face = i_face + uint32( size(face_out{n},2) ) - 1;
+    j_face = i_face + uint64( size(face_out{n},2) ) - 1;
     face( :, i_face:j_face ) = face_out{n} + i_vert;
     i_face = j_face + 1;
-    i_vert = i_vert + uint32( size(vert_out{n}, 2 ) );
+    i_vert = i_vert + uint64( size(vert_out{n}, 2 ) );
 end
 
 % Remove faces collapsing to a line or point

@@ -26,7 +26,7 @@ function read_obj( h_mesh, fname )
 %   Path to the OBJ File
 %
 %
-% QuaDRiGa Copyright (C) 2011-2021
+% QuaDRiGa Copyright (C) 2011-2025
 % Fraunhofer-Gesellschaft zur Foerderung der angewandten Forschung e.V. acting on behalf of its
 % Fraunhofer Heinrich Hertz Institute, Einsteinufer 37, 10587 Berlin, Germany
 % All rights reserved.
@@ -107,15 +107,15 @@ if no_new_mtl ~= 0
     h_mesh.mtl_thickness(:,no_existing_mtl+1:end) = ones(1,no_new_mtl) * 0.1;
 
     for n = 1 : no_new_mtl
-        h_mesh.mtl_prop(:,no_existing_mtl+n) = mtl_prop( find(mtl_ind == uint32(n),1) ,: )';
+        h_mesh.mtl_prop(:,no_existing_mtl+n) = mtl_prop( find(mtl_ind == uint64(n),1) ,: )';
     end
 end
-mtl_ind = mtl_ind + uint32(no_existing_mtl);
+mtl_ind = mtl_ind + uint64(no_existing_mtl);
 
 % Write mesh
-no_exisiting_vert = uint32( h_mesh.no_vert );
-no_existing_face  = uint32( h_mesh.no_face );
-no_existing_obj   = uint32( h_mesh.no_obj );
+no_exisiting_vert = uint64( h_mesh.no_vert );
+no_existing_face  = uint64( h_mesh.no_face );
+no_existing_obj   = uint64( h_mesh.no_obj );
 
 h_mesh.vert = [ h_mesh.vert, vert_list' ];
 h_mesh.face = [ h_mesh.face,  face_ind' + no_exisiting_vert ];
