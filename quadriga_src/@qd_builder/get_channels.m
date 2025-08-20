@@ -583,7 +583,7 @@ if ~only_coeff && numel( h_channel ) == 1
     h_channel = h_channel(1,1);
 end
 
-if verbose && nargin < 3
+if verbose && nargin == 1
     fprintf('] %5.0f seconds\n',round( etime(clock, tStart) ));
 end
 
