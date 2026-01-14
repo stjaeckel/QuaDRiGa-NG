@@ -140,6 +140,15 @@ function [ h_qd_arrayant, par ] = generate( array_type, Ain, Bin, Cin, Din, Ein,
 %   polarization.
 %      * Ain - Angular sampling resolution in [deg] - Default is 1 degree
 %
+%   ula
+%   Uniform linear array
+%      * Ain - Number of elements, default = 1
+%      * Bin - The center frequency in [Hz], default = 299792458 Hz 
+%      * Cin - Element spacing in lambda, default = 0.5 
+%      * Din - Pattern resolution in degree (optional, default = 1.0)
+%      * Ein - Individual element pattern "Fa" for the vertical polarization, default = omni
+%      * Fin - Individual element pattern "Fb" for the horizontal polarization, default = omni
+%
 %   ula2
 %   Uniform linear arrays composed of 2 omni-antennas (vertical polarization) with 10 cm element
 %   distance.
@@ -315,20 +324,34 @@ switch array_type
         h_qd_arrayant = qd_arrayant.generate('rhcp-dipole', Ain, Bin);
         h_qd_arrayant.coupling = 1/sqrt(2) * [1 1;1j -1j];
 
+    case 'ula'
+        if isempty(Ein) && isempty(Fin)
+            [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
+                coupling_re, coupling_im, center_frequency, ~] = quadriga_lib.arrayant_generate('ula', Din, Bin, [], [], [], 1, Ain, [], [], Cin );
+        else
+            pat = quadriga_lib.arrayant_generate('omni');
+            pat.e_theta_re(:) = 0;
+            if ~isempty(Ein)
+                pat.e_theta_re = real(Ein);
+                pat.e_theta_im = imag(Ein);
+            end
+            if ~isempty(Fin)
+                pat.e_phi_re = real(Fin);
+                pat.e_phi_im = imag(Fin);
+            end
+            [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
+                coupling_re, coupling_im, center_frequency, ~] = quadriga_lib.arrayant_generate('ula', Din, Bin, [], [], [], 1, Ain, [], [], Cin, [], [], [], [], pat );
+        end
+        name = 'ula';
+
     case 'ula2'
-        h_qd_arrayant = qd_arrayant('omni', Ain, Bin);
-        h_qd_arrayant.no_elements = 2;
-        h_qd_arrayant.element_position(2,:) = [-0.05 0.05];
+        h_qd_arrayant = qd_arrayant('ula', 2, Bin, 0.5, Ain);
 
     case 'ula4'
-        h_qd_arrayant = qd_arrayant('omni', Ain, Bin);
-        h_qd_arrayant.no_elements = 4;
-        h_qd_arrayant.element_position(2,:) = -0.15 :0.1: 0.15;
+        h_qd_arrayant = qd_arrayant('ula', 4, Bin, 0.5, Ain);
 
     case 'ula8'
-        h_qd_arrayant = qd_arrayant('omni', Ain, Bin);
-        h_qd_arrayant.no_elements = 8;
-        h_qd_arrayant.element_position(2,:) = -0.35 :0.1: 0.35;
+        h_qd_arrayant = qd_arrayant('ula', 8, Bin, 0.5, Ain);
 
     case 'vehicular'
         h_qd_arrayant = gen_arrayant_vehicular( Ain, Bin, Cin );
@@ -344,7 +367,7 @@ switch array_type
 end
 
 switch array_type
-    case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole', 'xpol', 'custom', 'patch', '3gpp-3d', '3gpp-mmw', '3gpp-nr', 'multi'}
+    case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole', 'xpol', 'custom', 'patch', '3gpp-3d', '3gpp-mmw', '3gpp-nr', 'multi', 'ula'}
         h_qd_arrayant = qd_arrayant([]);
         h_qd_arrayant.azimuth_grid = azimuth_grid;
         h_qd_arrayant.elevation_grid = elevation_grid;

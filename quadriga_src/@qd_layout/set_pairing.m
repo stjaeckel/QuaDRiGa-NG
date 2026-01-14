@@ -208,13 +208,9 @@ end
 switch method
     case 'all'
         pairs = zeros( 2, h_layout.no_tx*h_layout.no_rx );
-        o_rx  = ones( 1,h_layout.no_rx);
         i_end = 0;
-        rx_position = h_layout.rx_position;
-        tx_position = h_layout.tx_position;
         for i_tx = 1 : h_layout.no_tx
-            dist = sqrt(sum((rx_position - tx_position(:,i_tx*o_rx)).^2));
-            ind_mt = find( dist > 1e-4 );
+            ind_mt = 1 : h_layout.no_rx;
             ind_pairs = ( 1 : numel(ind_mt) ) + i_end ;
             
             pairs( 1, ind_pairs ) = i_tx;
