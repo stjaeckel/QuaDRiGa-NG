@@ -13,7 +13,7 @@ option(HDF5_QD "Link HDF5 statically" OFF)
 option(ARMA_QD "Use armadillo headers provided with quadriga-lib" ON)
 
 # Versions for external libraries (adjust as needed)
-set(quadriga_lib_version "0.10.1")
+set(quadriga_lib_version "0.12.2")
 
 # Set the C++ standard and basic compile flags
 set(CMAKE_CXX_STANDARD 17)
@@ -34,7 +34,7 @@ endif()
 
 # Config options for Quadriga-lib
 include(ExternalProject)
-set(QUADRIGA_LIB_ZIP "${CMAKE_SOURCE_DIR}/external/quadriga_lib-${quadriga_lib_version}.zip")
+set(QUADRIGA_LIB_ZIP "${CMAKE_SOURCE_DIR}/external/quadriga_lib_${quadriga_lib_version}.zip")
 set(QUADRIGA_LIB_ARGS
     URL ${QUADRIGA_LIB_ZIP}
     BINARY_DIR "${CMAKE_BINARY_DIR}/quadriga_lib-${quadriga_lib_version}_build"

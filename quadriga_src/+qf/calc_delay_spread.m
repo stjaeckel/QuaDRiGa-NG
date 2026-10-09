@@ -7,10 +7,10 @@ function [ ds, mean_delay ] = calc_delay_spread( taus, pow, threshold, granulari
 %
 % Input:
 %   taus
-%   A vector of deays [s]. Dimensions: [ n_taus x n_path ]
+%   A vector of deays [s]. Dimensions: [ n_cir x n_path ]
 %
 %   pow
-%   A vector of path powers in [W]. Dimensions: [ n_taus x n_path ]
+%   A vector of path powers in [W]. Dimensions: [ n_cir x n_path ]
 %
 %   threshold
 %   An additional threshold in [dB] (scalar value) for the path powers relative to the strongest
@@ -29,10 +29,10 @@ function [ ds, mean_delay ] = calc_delay_spread( taus, pow, threshold, granulari
 %
 % Output:
 %   ds
-%   The RMS delay spread for each delay vector. Dimensions: [ n_taus x 1 ]
+%   The RMS delay spread for each delay vector. Dimensions: [ n_cir x 1 ]
 %
 %   mean_delay
-%   The mean delay in [s]. Dimensions: [ n_taus x 1 ]
+%   The mean delay in [s]. Dimensions: [ n_cir x 1 ]
 %
 %
 % QuaDRiGa Copyright (C) 2011-2019
