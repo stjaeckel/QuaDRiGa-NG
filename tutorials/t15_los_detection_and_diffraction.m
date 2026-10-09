@@ -14,11 +14,9 @@
 % * Incorporating antenna models
 % * Assigning LOS and NLOS sections to track sections
 %
-% The 3D model extension is part of the "qd_mesh" class. However, it has two versions: a MATLAB
-% version and an Nvidia-CUDA version for GPU acceleration. The latter, available only on Linux, is
-% located in the "+qext" module within the "quadriga_src" folder and requires compilation for your
-% specific CPU/GPU architecture. Use the "qd_mesh.has_gpu" command to check if your system supports
-% GPU acceleration and whether the extension is compiled correctly.
+% The 3D model extension is part of the "qd_mesh" class. The computations are done by Quadriga-Lib,
+% which can optionally be compiled with Nvidia-CUDA support for GPU acceleration. Use the
+% "qd_mesh.has_gpu" command to check if your system supports GPU acceleration.
 
 %% Setting general parameters
 % We set up some basic parameters such as center frequency and sample density.

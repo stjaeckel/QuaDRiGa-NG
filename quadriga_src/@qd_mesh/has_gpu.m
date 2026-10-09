@@ -18,11 +18,6 @@ function gpu = has_gpu
 % The QuaDRiGa Channel Model. You should have received a copy of the Software License for The
 % QuaDRiGa Channel Model along with QuaDRiGa. If not, see <http://quadriga-channel-model.de/>.
 
-gpu = false;
-try
-   compute_capability = qext.test_gpu_access;
-   if compute_capability >= 3.5
-       gpu = true;
-   end
-end
+% Quadriga-Lib adds the suffix "_CUDA" to its version string if a CUDA-capable GPU can be used
+gpu = ~isempty( strfind( quadriga_lib.version, '_CUDA' ) ); %#ok
 

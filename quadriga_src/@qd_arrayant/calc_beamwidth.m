@@ -67,57 +67,8 @@ if ~exist('thres_dB','var') || isempty(thres_dB)
     thres_dB = 3;
 end
 
-el = h_qd_arrayant.elevation_grid;
-nEl = numel(el);
-tmp = (el(end)-el(1))/(100*nEl);
-eli = [ el(1) : tmp : el(end)-tmp/2, el(end) ];
-
-az = h_qd_arrayant.azimuth_grid;
-nAz = numel(az);
-tmp = (az(end)-az(1))/(100*nAz);
-azi = [ az(1) : tmp : az(end)-tmp/2, az(end) ];
-
-beamwidth_az = zeros(numel(i_element),1);
-beamwidth_el = zeros(numel(i_element),1);
-az_point_ang = zeros(numel(i_element),1);
-el_point_ang = zeros(numel(i_element),1);
-
-for n = 1 : numel(i_element)
-    
-    % Read the qd_arrayant elements
-    Fa = h_qd_arrayant.Fa(:, :, i_element(n));
-    Fb = h_qd_arrayant.Fb(:, :, i_element(n));
-    
-    % calculate radiation power pattern and normalize it
-    P = abs(Fa).^2 + abs(Fb).^2;
-    P_max = max( P(:) );
-    P = P ./ P_max;
-    
-    % Find the elevation angle ant the azimuth angle with the maximum values
-    [~,ii] = max(P(:));
-    [ iEl, iAz ] = qf.qind2sub( [nEl,nAz],ii );
-    
-    % Calculate azimuth beamwidth
-    Pi = abs(quadriga_lib.interp( az, [], Fa(iEl,:), azi )).^2 +...
-        abs(quadriga_lib.interp( az, [], Fb(iEl,:), azi )).^2;
-    [P_max,iM] = max(Pi);
-    Pi = Pi ./ P_max;
-    
-    iS = find(Pi > 10^(-0.1*thres_dB),1);
-    iL = find(Pi > 10^(-0.1*thres_dB),1,'last');
-    beamwidth_az(n,1) = (azi(iL)-azi(iS))*180/pi;
-    az_point_ang(n,1) = azi(iM)*180/pi;
-    
-    % Calculate elevation beamwidth
-    Pi = abs(quadriga_lib.interp( el, [], Fa(:,iAz).', eli )).^2 +...
-        abs(quadriga_lib.interp( el, [], Fb(:,iAz).', eli )).^2;
-    [P_max,iM] = max(Pi);
-    Pi = Pi ./ P_max;
-    
-    iS = find(Pi > 10^(-0.1*thres_dB),1);
-    iL = find(Pi > 10^(-0.1*thres_dB),1,'last');
-    beamwidth_el(n,1) = (eli(iL)-eli(iS))*180/pi;
-    el_point_ang(n,1) = eli(iM)*180/pi;
-end
+[ beamwidth_az, beamwidth_el, az_point_ang, el_point_ang ] = quadriga_lib.arrayant_calc_beamwidth( ...
+    real(h_qd_arrayant.Fa), imag(h_qd_arrayant.Fa), real(h_qd_arrayant.Fb), imag(h_qd_arrayant.Fb), ...
+    h_qd_arrayant.azimuth_grid, h_qd_arrayant.elevation_grid, i_element, thres_dB );
 
 end

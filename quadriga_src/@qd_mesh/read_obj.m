@@ -49,55 +49,18 @@ else
     h_mesh = h_mesh(1,1); % workaround for octave
 end
 
-use_octave = isempty( strfind( version,'R20' ) ); %#ok
-
 if ~exist( 'fname','var' ) || isempty( fname )
     error('QuaDRiGa:qd_mesh:read_obj','Filename is not given.');
 end
 
-[ ~, vert_list, face_ind, obj_ind, obj_name, mtl_ind, mtl_name, ~, csv_ind, ~, csv_prop ] = quadriga_lib.obj_file_read( fname );
+[ ~, vert_list, face_ind, obj_ind, obj_name, mtl_ind, mtl_name, bsdf, csv_ind, ~, csv_prop ] = quadriga_lib.obj_file_read( fname );
 
-% Read the name of the material library
-i_obj = 0;
-obj_mtl = {};
-mtl_file_name = '';
-fid = fopen(fname, 'r');        % Open File
-while ~feof(fid)
-    l = fgets(fid);
-    if numel(l) > 7 && strcmp( l(1:6),'mtllib' ) % Look for mtllib
-        mtl_file_name = sscanf( l(8:end),'%s' );
-        break
-    end
-end
-fclose( fid );
-
-% Load material properties
+% Load material properties, the diffuse color (Kd) is stored in the first 3 columns of the BSDF
 no_existing_mtl = h_mesh.no_mtl;
 no_new_mtl = numel(mtl_name);
 mtl_color = ones(3,no_new_mtl) * 0.8;
-mtl_Ni = ones(1,no_new_mtl) * 1.45;
-
-if ~isempty( mtl_file_name )
-    fid = fopen(fullfile( fileparts(fname),mtl_file_name), 'r');            % Open MTL File
-
-    i_mtl = 0;
-    while ~feof(fid)
-        l = fgets(fid);
-        if l(1) == 'n' && numel(l) > 7 && strcmp( l(1:6),'newmtl' ) % Look for mtllib
-            name = sscanf( l(8:end),'%s' );
-            ind = strcmp( mtl_name, name );
-            if sum(ind) == 1
-                i_mtl = find(ind);
-            else
-                i_mtl = 0;
-            end
-        elseif l(1) == 'K' && l(2) == 'd' && i_mtl ~= 0
-            mtl_color(:,i_mtl) = sscanf( l,'Kd %f %f %f' );
-        elseif l(1) == 'N' && l(2) == 'i' && i_mtl ~= 0
-            mtl_Ni(i_mtl) = sscanf( l,'Ni %f' );
-        end
-    end
-    fclose( fid );
+if size( bsdf,1 ) == no_new_mtl
+    mtl_color = bsdf(:,1:3)';
 end
 
 % Write materials to h_mesh

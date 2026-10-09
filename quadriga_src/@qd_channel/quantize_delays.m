@@ -1,5 +1,5 @@
 function h_channel_quant = quantize_delays( h_channel, tap_spacing, max_no_taps,...
-    i_rxant, i_txant, fix_taps, verbose )
+    i_rxant, i_txant, fix_taps, verbose ) %#ok<INUSD>
 %QUANTIZE_DELAYS Fixes the path delays to a grid of delay bins
 %
 % Calling object:
@@ -47,7 +47,7 @@ function h_channel_quant = quantize_delays( h_channel, tap_spacing, max_no_taps,
 %     3  Use same delays for all snapshots, but different delays for each tx-rx pair
 %
 %   verbose
-%   Enables (1, default) or disables (0) a progress bar.
+%   Not used. The argument is kept for compatibility with previous versions.
 %
 % Output:
 %   h_channel_quant
@@ -81,10 +81,9 @@ end
 if ~exist( 'tap_spacing' , 'var' ) || isempty( tap_spacing )
     tap_spacing = 5e-9;
 end
-tap_spacing = single( tap_spacing );
 
-if ~exist( 'max_no_taps' , 'var' ) || isempty( max_no_taps )
-    max_no_taps = Inf;
+if ~exist( 'max_no_taps' , 'var' ) || isempty( max_no_taps ) || isinf( max_no_taps )
+    max_no_taps = 0; % Quadriga-Lib uses 0 for an unlimited number of taps
 end
 
 if ~exist( 'i_txant' , 'var' ) || isempty( i_txant )
@@ -103,213 +102,31 @@ if ~exist( 'fix_taps' , 'var' ) || isempty( fix_taps )
     fix_taps = 0;
 end
 
-if exist( 'verbose' , 'var' )
-    if ~( isnumeric(verbose) || ~isnan(verbose) || all(size(verbose) == [1 1]) )
-        error('QuaDRiGa:qd_channel:quantize_delays','"verbose" must be numeric.')
-    else
-        verbose = logical(verbose);
-    end
-else
-    verbose = true;
+% Read coefficients and delays for the selected antennas
+if h_channel.individual_delays
+    delay = h_channel.Pdelay( i_rxant, i_txant, :, : );
+else % Delays are identical on all MIMO links, size [ 1, 1, n_path, n_snap ]
+    delay = reshape( h_channel.Pdelay, 1, 1, h_channel.no_path, h_channel.no_snap );
+end
+coeff = h_channel.Pcoeff( i_rxant, i_txant, :, : );
+
+% Map the delays to the tap grid, a power exponent of 0.5 interpolates the path power linearly
+[ coeff_re, coeff_im, delay ] = quadriga_lib.quantize_delays( real(coeff), imag(coeff), delay, ...
+    tap_spacing, max_no_taps, 0.5, fix_taps );
+
+% Delays that are shared by all antennas are returned with size [ 1, 1, n_taps, n_snap ]
+if size( delay,1 ) ~= size( coeff_re,1 ) || size( delay,2 ) ~= size( coeff_re,2 )
+    delay = repmat( delay, [ size(coeff_re,1), size(coeff_re,2), 1, 1 ] );
 end
 
-% Read common variables
-no_rxant = numel(i_rxant);
-no_txant = numel(i_txant);
-no_ant   = no_rxant*no_txant;
-no_snap  = h_channel.no_snap;
-no_path  = h_channel.no_path;
+% Create output channel object
+h_channel_quant = qd_channel( complex( coeff_re, coeff_im ), delay );
 
-% We need individual delays for each antenna
-if ~h_channel.individual_delays
-    h_channel = copy( h_channel );
-    h_channel.individual_delays = true;
-end
-
-% Each delay is approximated by two taps, one below the target delay and one above.
-% The power weighting exponent must match the target bandwidth to maintain the desired channel
-% power. A value of 0.5 corresponds to the full sampling bandwidth (e.g. when 200 MHZ at 5 ns tap
-% spacing).
-
-no_coeff = double(no_rxant*no_txant*no_snap);                   % Total number of coefficients
-
-Dn = single( h_channel.Pdelay( i_rxant, i_txant, :,: ) );       % Copy delays from input
-Di = floor( Dn./tap_spacing );                                  % Delay for the lower tap
-Do = (Dn - Di.*tap_spacing)./tap_spacing;                       % Relative offset
-Cn = single( h_channel.Pcoeff( i_rxant, i_txant, :,: ) );       % Copy coefficients
-
-already_quantized = all( Do(:) < 0.01 | Do(:) > 0.99 );         % Test if output is already quantized
-
-if ~already_quantized || fix_taps
-    
-    if verbose                                                  % Show progress bar
-        fprintf('Delay Quant. [');
-        vb_dots = 50;
-        tStart = clock;
-        m0=0;
-    end
-    
-    if already_quantized
-        Di = [];
-        Ci = [];
-    else
-        Di = uint16( Di )+1;                                 	% Convert to uint16
-        Ci = cat( 3, ((1-Do).^0.5).*Cn, (Do.^0.5).*Cn );      	% Weight coefficients
-        Di = cat( 3, Di, Di+1 );                                % Lower and upper tap
-    end
-    clear Do                                                  	% Free memory
-    
-    Dn = uint16( round(Dn./tap_spacing) )+1;                    % Round and convert to uint16
-    
-    if fix_taps == 1                                            % Taps are fixed for all antennas and snapshots
-        D = find_optimal_delays( Dn, Cn, Di, Ci, max_no_taps ); % Best matching delays
-        D = D(:,ones(1,no_coeff));                              % Expand
-
-    elseif fix_taps == 2                                        % Taps are fixed for antennas only
-        D = zeros( 1, no_coeff, 'uint16' );                     % Placeholder for delays
-        for s = 1 : no_snap
-            if already_quantized
-                Ds = find_optimal_delays( Dn(:,:,:,s), Cn(:,:,:,s),[],[], max_no_taps );
-            else
-                Ds = find_optimal_delays( Dn(:,:,:,s), Cn(:,:,:,s), Di(:,:,:,s), Ci(:,:,:,s), max_no_taps );
-            end
-            D( 1:size(Ds,1),(s-1)*no_ant+(1:no_ant) ) = Ds(:,ones(1,no_ant));
-        end
-        D = D( any(D~=0,2),: );                                 % Remove unneeded delays
-        
-    elseif fix_taps == 3                                        % Taps are fixed for snapshots only
-        D = zeros( 1, no_coeff, 'uint16' );                     % Placeholder for delays
-        for a = 1 : no_ant
-            [r,t] = qf.qind2sub( [no_rxant,no_txant], a );
-            if already_quantized
-                Ds = find_optimal_delays( Dn(r,t,:,:), Cn(r,t,:,:), [],[], max_no_taps );
-            else
-                Ds = find_optimal_delays( Dn(r,t,:,:), Cn(r,t,:,:), Di(r,t,:,:), Ci(r,t,:,:), max_no_taps );
-            end
-            D( 1:size(Ds,1),(0:no_snap-1)*no_ant+a ) = Ds(:,ones(1,no_snap));
-        end
-        D = D( any(D~=0,2),: );                                 % Remove unneeded delays
-        
-    else                                                        % Variable delay per link
-        no_taps = min( size(Di,3), max_no_taps );
-        D = zeros( no_taps, no_coeff, 'uint16' );               % Placeholder for delays
-        
-    end
-    no_taps = size(D,1);                                        % Save number of taps
-    
-    if ~already_quantized
-        Di = reshape( permute( Di, [3,1,2,4] ), [], no_coeff ); % Reorder dimensions
-        Ci = reshape( permute( Ci, [3,1,2,4] ), [], no_coeff ); % Reorder dimensions
-    end
-    Dn = reshape( permute( Dn, [3,1,2,4] ), [], no_coeff );   	% Reorder dimensions
-    Cn = reshape( permute( Cn, [3,1,2,4] ), [], no_coeff );    	% Reorder dimensions
-    
-    iFloor = false(2*no_path,1);
-    iCeil  = iFloor;
-    iFloor(1:no_path) = true;
-    iCeil(no_path+1:end) = true;
-    
-    C = complex( zeros( no_taps, no_coeff, 'single' ) );        % Placeholder for coeffs
-    
-    for ic = 1 : no_coeff
-        if verbose; m1=ceil(ic/no_coeff*vb_dots); if m1>m0      % Update progress bar
-                for m2=1:m1-m0; fprintf('o'); end; m0=m1; end; end
-        
-        if D(1,ic) == 0                                         % Calculate optimal delays
-            if already_quantized
-                Ds = find_optimal_delays( Dn(:,ic), Cn(:,ic), [],[], no_taps );
-            else
-                Ds = find_optimal_delays( Dn(:,ic), Cn(:,ic), Di(:,ic), Ci(:,ic), no_taps );
-            end
-            D( 1:size(Ds,1),ic ) = Ds;                          % Save to delay variable
-        end
-        
-        iN = ismember( Dn(:,ic), D(:,ic) );                     % Find non-interpolated taps
-        
-        if already_quantized
-            coeff = accumarray( Dn(iN,ic), Cn(iN,ic) );         % Combine coefficients
-        else
-            iC = ismember( Di(:,ic), D(:,ic) );               	% Find interpolated taps
-            iC = iC(iFloor) & iC(iCeil);                        % For interpolation, the upper and lower tap must be written
-            iN = iN & ~iC;                                      % Do not write non-interpolated taps that are interpolated
-            iC = [ iC ; iC ];                                   % Expand vector
-            coeff = accumarray( [ Di(iC,ic); Dn(iN,ic) ], [ Ci(iC,ic); Cn(iN,ic) ] );
-        end
-        
-        [ idB, ~, cfB ] = find( coeff );                        % Get mixed data
-        [iX,lX] = ismember( idB, D(:,ic) );                     % Find delay positions
-        C(lX(iX),ic) = cfB;                                     % Write coefficients
-
-    end
-    clear Di Dn Ci Cn                                           % Free memory
-    
-    iV = max(abs(C),[],2 ) > 0;                                 % Remove taps from output that are zero
-    C = reshape( C(iV,:), [], no_rxant, no_txant, no_snap );    % Format output coefficients
-    C = permute( C, [2,3,1,4] );
-    
-    D = reshape( D(iV,:), [], no_rxant, no_txant, no_snap );    % Format output delays
-    D = permute( D, [2,3,1,4] );
-    D = single( D-1 ) .* tap_spacing;                           % Back to [s]
-    
-    h_channel_quant = qd_channel( C, D );                       % Write data to output channel object
-    clear C D                                                   % Free memory
-    
-    if verbose
-        fprintf('] %5.0f seconds\n',round( etime(clock, tStart) ));
-    end
-    
-else                                                            % Already quantized channels
-    no_taps = min( h_channel.no_path, max_no_taps );            % Assemble new coefficient matrix
-    if h_channel.no_path > no_taps
-        Dn = reshape( permute( Dn, [3,1,2,4] ), [], no_coeff ); % Reorder dimensions
-        Dn = uint16( round(Dn./tap_spacing) )+1;                % Round and convert to uint16
-        Cn = reshape( permute( Cn, [3,1,2,4] ), [], no_coeff ); % Reorder dimensions
-        D = zeros( no_taps, no_coeff, 'uint16' );               % Placeholder for delays
-        C = complex( zeros( no_taps, no_coeff, 'single' ));     % Placeholder for coeffs
-        for ic = 1 : no_coeff
-            Cnn = Cn(:,ic);
-            [ ~, ij ] = sort( Cnn,'descend' );                  % Sort taps in descending order
-            ij = sort( ij(1:no_taps) );                         % Remove weakest taps
-            C(:,ic) = Cnn(ij);                                  % Save remaining delays
-            D(:,ic) = Dn(ij,ic);                                % Save remaining coefficients
-        end
-        C = reshape( C, no_taps, no_rxant, no_txant, no_snap );	% Format output coefficients
-        C = permute( C, [2,3,1,4] );
-        D = reshape( D, no_taps, no_rxant, no_txant, no_snap );	% Format output delays
-        D = permute( D, [2,3,1,4] );
-        D = single( D-1 ) .* tap_spacing;                       % Back to [s]
-        h_channel_quant = qd_channel( C, D );                   % Write data to output channel object
-    else
-        h_channel_quant = qd_channel( Cn, Dn );               	% Write data to output channel object
-    end
-end
-
-% Copy remaining data from original channel
+% Copy remaining data from the input channel
 h_channel_quant.name = h_channel.name;
 h_channel_quant.center_frequency = h_channel.center_frequency;
 h_channel_quant.par = h_channel.par;
 h_channel_quant.tx_position = h_channel.tx_position;
 h_channel_quant.rx_position = h_channel.rx_position;
 
-end
-
-% ================= find_optimal_delays ======================
-function D = find_optimal_delays( Dn, Cn, Di, Ci, max_no_taps )
-pdp = accumarray( Dn(:), abs(Cn(:)).^2 );               % Calculate sum-PDP of non-interpolated coefficients
-[ dB,~,pdp ] = find( pdp );                             % Calculate delays from sum-PDP
-dB = uint16( dB );                                      % Convert to uint16
-if numel( dB ) >= max_no_taps || isempty( Di )          % Not enough taps
-    [ ~,ij ] = sort( pdp,'descend' );                   % Sort taps in descending order
-    ij = sort( ij(1:min(max_no_taps,numel(dB))) );      % Remove weakest taps
-    D = dB(ij);                                         % Best matching delays
-else
-    pdp = accumarray( Di(:), abs(Ci(:)).^2 );           % Calculate sum-PDP of interpolated coefficients
-    D = uint16( find( pdp ) );                          % Calculate delays from sum-PDP
-    if numel( D ) > max_no_taps                         % There are not enough taps for full interpolation
-        dC = D( ~ismember(D,dB) );                      % Delays that are added by interpolation
-        [ ~,ij ] = sort( pdp(dC),'descend' );           % Sort taps in descending order
-        ij = sort( ij(1:max_no_taps-numel(dB)) );       % Remove weakest taps
-        D = sort([dB;dC(ij)]);                          % Mixed taps
-    end
-end
 end

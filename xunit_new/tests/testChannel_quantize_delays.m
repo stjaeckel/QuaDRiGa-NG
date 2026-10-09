@@ -44,8 +44,12 @@ assertTrue( abs( c.coeff(2,1,1,1) - d.coeff(2,1,1,1) ) < 1e-5 ) % Same path
 assertTrue( abs( d.coeff(1,1,1,1) - d.coeff(1,1,2,1) ) < 1e-5 ) % One path approximated by 2 equal taps
 
 % Identical coefficients if delays lay on sampling grid
-x = c.coeff(2,1,:,:) - d.coeff(2,1,1:4,:);
-assertTrue( all( all( abs( x(:) ) < 1e-5 ) )); % Single precision
+for n = 1 : 5
+    x = d.coeff(2,1,:,n);
+    x = x( abs(x) > 1e-5 );      % Rounding of the delays can add taps with zero power
+    y = c.coeff(2,1,:,n);
+    assertTrue( all( abs( x(:) - y(:) ) < 1e-5 ) ); % Single precision
+end
 
 d = c.quantize_delays([],4,[],[],0,0);
 assertEqual( d.no_path, 4 );
@@ -60,7 +64,7 @@ assertEqual( e.no_path, 3 );
 assertEqual( e.no_rxant, 2 );
 assertEqual( e.no_txant, 1 );
 x = e.coeff(1,1,:,1);
-assertEqual( x(:), single([2;3;4]) );
+assertEqual( x(:), [2;3;4] );
 
 % If there are less taps than paths, the trongest are returned
 d = c.quantize_delays([],3,1,2,0,0);
@@ -85,9 +89,20 @@ d = c.quantize_delays(2.5e-9,[],[],[],2,0);     % Fixed delays for all antennas
 assertEqual( d.no_path, 2*3*4 );   
 
 d = c.quantize_delays(2.5e-9,[],[],[],3,0);     % Fixed delays for all snapshots
-assertEqual( d.no_path, 5*4 );  
+assertEqual( d.no_path, 5*4 );
 
-
-
-
-
+% Channels with identical delays on all MIMO links must give the same result as individual delays
+c = qd_channel( C, rand(4,5)*100e-9 );
+assertTrue( ~c.individual_delays );
+e = c.copy;
+e.individual_delays = true;
+for fix_taps = 0 : 3
+    d = c.quantize_delays([],[],[2,1],[1,3],fix_taps,0);
+    f = e.quantize_delays([],[],[2,1],[1,3],fix_taps,0);
+    assertEqual( d.no_rxant, 2 );
+    assertEqual( d.no_txant, 2 );
+    assertEqual( size(d.coeff), size(f.coeff) );
+    assertEqual( size(d.delay), size(f.delay) );
+    assertTrue( all( abs( d.coeff(:) - f.coeff(:) ) < 1e-5 ) );
+    assertTrue( all( abs( d.delay(:) - f.delay(:) ) < 1e-13 ) );
+end

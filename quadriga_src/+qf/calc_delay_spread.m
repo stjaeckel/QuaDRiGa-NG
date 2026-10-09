@@ -60,45 +60,13 @@ if ~exist('granularity','var') || isempty( granularity )
     granularity = 0;
 end
 
+% The powers can be given for a single CIR and are then used for all CIRs
 N = size( taus,1 );
-oN = ones(1,N);
 if size( pow,1 ) < N
-    pow = pow( oN, : );
+    pow = pow( ones(1,N), : );
 end
 
-if granularity > 0
-    min_delay = floor( min(taus(:))/granularity ) * granularity ;
-    max_delay =  ceil( max(taus(:))/granularity ) * granularity ;
-    delay_win = min_delay : granularity : max_delay;
-    
-    % calculate the PDP
-    pdp = zeros( N , numel( delay_win ) );
-    ind = round( (taus - min_delay)./granularity ) + 1;
-    for n = 1 : N
-        pdp(n,:) = accumarray( ind(n,:)', pow(n,:)', [numel( delay_win ),1] )';
-    end
-    [ ds, mean_delay ] = qf.calc_delay_spread( delay_win, pdp, threshold );
-    
-    
-else
-    oP = ones(1,size(pow,2));
-
-    % Apply threshold
-    if ~isinf( threshold )
-        max_pow = max(pow,[],2);
-        min_pow = max_pow./10.^(0.1*threshold);
-        pow( pow < min_pow(:,oP) ) = 0;
-    end
-    
-    % Normalize powers
-    pt = sum( pow,2 );
-    pow = pow./pt( :,oP );
-            
-    mean_delay = sum( pow.*taus,2 );
-    
-    tmp = taus - mean_delay( :,oP );
-    
-    ds = sqrt( sum(pow.*(tmp.^2),2) - sum( pow.*tmp,2).^2 );
-end
+% Quadriga-Lib expects the CIRs in the columns: [ n_path x n_cir ]
+[ ds, mean_delay ] = quadriga_lib.calc_delay_spread( taus.', pow.', threshold, granularity );
 
 end
