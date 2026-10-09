@@ -100,12 +100,6 @@ if numel(h_qd_arrayant) > 1
 else
     h_qd_arrayant = h_qd_arrayant(1,1);
     
-    % Make sure we use the correct precision
-    if isa( h_qd_arrayant.PFa,'single') && isa( h_qd_arrayant.PFb,'single')
-        elevation_grid = single( elevation_grid );
-        azimuth_grid = single( azimuth_grid );
-    end
-    
     if use_interpolate
         el = repmat( elevation_grid' , 1 , numel(azimuth_grid) );
         az = repmat( azimuth_grid , numel(elevation_grid) , 1 );

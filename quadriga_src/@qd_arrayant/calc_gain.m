@@ -50,12 +50,6 @@ elseif any(i_element > h_qd_arrayant.no_elements)
     error('??? "i_element" exceeds "no_elements"')
 end
 
-if isa( h_qd_arrayant.PFa, 'single' )
-    single( h_qd_arrayant );
-else % double
-    double( h_qd_arrayant );
-end
-
 directivity_dBi = zeros(numel(i_element),1);
 gain_dBi = zeros(numel(i_element),1);
 

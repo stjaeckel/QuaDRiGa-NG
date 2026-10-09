@@ -99,13 +99,6 @@ else
     usage = 0;
 end
 
-% Determine if we use single or double precision
-if isa( h_qd_arrayant.Fa, 'single' )
-    single( h_qd_arrayant );
-else
-    double( h_qd_arrayant );
-end
-
 zrot = 0;
 yrot = 0;
 xrot = 0;

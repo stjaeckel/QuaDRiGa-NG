@@ -244,7 +244,6 @@ if u1 || I1(1) ~= 0
                         initial_position = chan.initial_position;
                     end
 
-                    % Structured data is stored in single precision
                     rx_position = get_field( chan, 'rx_position' );
                     tx_position = get_field( chan, 'tx_position' );
                     coeff_re = get_field( chan, 'coeff_re' );
@@ -325,12 +324,9 @@ end
 end
 
 function val = get_field( chan, name )
-% Returns a field of the channel struct (empty if not present), double is converted to single
+% Returns a field of the channel struct (empty if not present)
 val = [];
 if isfield( chan, name )
     val = chan.(name);
-    if isa( val, 'double' )
-        val = single( val );
-    end
 end
 end

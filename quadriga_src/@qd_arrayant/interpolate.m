@@ -120,22 +120,7 @@ elseif logical( use_gpu ) && ~qd_simulation_parameters.has_gpu
     use_gpu = 0;
 end
 
-% Adjust single/double if needed
-use_double = isa( h_qd_arrayant.PFa, 'double' );
-if ~isa( h_qd_arrayant.PFb, 'double' ) && use_double
-    h_qd_arrayant.PFb = double( h_qd_arrayant.PFb );
-end
-if ~isa( h_qd_arrayant.azimuth_grid, 'double' ) && use_double
-    h_qd_arrayant.azimuth_grid = double( h_qd_arrayant.azimuth_grid );
-end
-if ~isa( h_qd_arrayant.elevation_grid, 'double' ) && use_double
-    h_qd_arrayant.elevation_grid = double( h_qd_arrayant.elevation_grid );
-end
-if ~isa( h_qd_arrayant.element_position, 'double' ) && use_double
-    element_position = double( h_qd_arrayant.element_position(:,i_element) );
-else
-    element_position = h_qd_arrayant.element_position(:,i_element);
-end
+element_position = h_qd_arrayant.element_position(:,i_element);
 
 % Match azimuth angle dimensions
 no_element = numel( i_element );

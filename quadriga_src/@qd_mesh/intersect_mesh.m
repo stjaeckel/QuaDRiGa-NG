@@ -72,12 +72,6 @@ if ~exist( 'dest','var' ) || size(dest,1) ~= 3
     error('QuaDRiGa:qd_mesh:intersect','"dest" is not given or has wrong format');
 end
 
-use_single = false;
-if isa(orig,'single')
-    use_single = true;
-    dest = single(dest);
-end
-
 if size(orig,2) == 1
     orig = repmat(orig, 1, size(dest,2));
 end
@@ -100,12 +94,6 @@ if use_object_id
     mesh = h_mesh.mesh(obj_id,:);
 else
     mesh = h_mesh.mesh;
-end
-
-if use_single
-    mesh = single( mesh );
-else
-    mesh = double( mesh );
 end
 
 if use_object_id || isempty( h_mesh.Psub_mesh_index )

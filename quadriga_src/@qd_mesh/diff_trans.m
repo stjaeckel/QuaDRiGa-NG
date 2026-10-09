@@ -64,12 +64,6 @@ if ~exist( 'dest','var' ) || size(dest,1) ~= 3
     error('QuaDRiGa:qd_mesh:diff_trans','"dest" is not given or has wrong format');
 end
 
-use_single = false;
-if isa(orig,'single')
-    use_single = true;
-    dest = single(dest);
-end
-
 if size(orig,2) == 1
     orig = repmat(orig, 1, size(dest,2));
 end
@@ -100,13 +94,8 @@ if ~exist( 'verbose','var' ) || isempty( verbose )
 end
 
 % Read the vertices from the mesh
-if use_single
-    mesh = single( h_mesh.mesh(obj_id,:) );
-    mtl_prop = single( h_mesh.mtl_prop )';
-else
-    mesh = double( h_mesh.mesh(obj_id,:) );
-    mtl_prop = double( h_mesh.mtl_prop )';
-end
+mesh = h_mesh.mesh(obj_id,:);
+mtl_prop = h_mesh.mtl_prop';
 mtl_ind = h_mesh.mtl_index(obj_id);
 mtl_prop = struct( 'a',mtl_prop(:,1), 'b',mtl_prop(:,2), 'c',mtl_prop(:,3), 'd',mtl_prop(:,4), 'att',mtl_prop(:,5) );
 
