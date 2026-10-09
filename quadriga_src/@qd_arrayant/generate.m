@@ -225,6 +225,9 @@ switch array_type
     case {'omni', 'short-dipole', 'dipole', 'half-wave-dipole', 'xpol'}
         %      * Ain - Pattern resolution in degree (optional, default = 1.0)
         %      * Bin - The center frequency in [Hz], default = 299792458 Hz 
+        if isempty( Ain )
+            Ain = 1;
+        end
         [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
             coupling_re, coupling_im, center_frequency, name] = quadriga_lib.arrayant_generate(array_type, Ain, Bin);
 
@@ -329,7 +332,7 @@ switch array_type
             [e_theta_re, e_theta_im, e_phi_re, e_phi_im, azimuth_grid, elevation_grid, element_pos, ...
                 coupling_re, coupling_im, center_frequency, ~] = quadriga_lib.arrayant_generate('ula', Din, Bin, [], [], [], 1, Ain, [], [], Cin );
         else
-            pat = quadriga_lib.arrayant_generate('omni');
+            pat = quadriga_lib.arrayant_generate('omni', 1);
             pat.e_theta_re(:) = 0;
             if ~isempty(Ein)
                 pat.e_theta_re = real(Ein);

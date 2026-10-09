@@ -111,7 +111,7 @@ end
 if use_object_id || isempty( h_mesh.Psub_mesh_index )
     [ fbs, sbs, no_trans, iFBS, iSBS ] = quadriga_lib.ray_triangle_intersect( orig', dest', mesh );
 else
-    [ fbs, sbs, no_trans, iFBS, iSBS ] = quadriga_lib.ray_triangle_intersect( orig', dest', mesh, h_mesh.Psub_mesh_index - 1 );
+    [ fbs, sbs, no_trans, iFBS, iSBS ] = quadriga_lib.ray_triangle_intersect( orig', dest', mesh, h_mesh.Psub_mesh_index );
 end
 
 islos = no_trans == uint64(0);

@@ -185,7 +185,7 @@ methods
         m = reshape( h_mesh(1,1).Pvert(:,h_mesh(1,1).Pface(:)), 9,[] )';
     end
     function m = get.aabb( h_mesh )
-        m = quadriga_lib.triangle_mesh_aabb( h_mesh.mesh, h_mesh.Psub_mesh_index-1 );
+        m = quadriga_lib.triangle_mesh_aabb( h_mesh.mesh, h_mesh.Psub_mesh_index );
     end
     
     % Set functions

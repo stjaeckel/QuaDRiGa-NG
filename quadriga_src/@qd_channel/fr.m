@@ -98,8 +98,13 @@ if check
     end
 end
 
+delay = h_channel.delay;
+if ~h_channel.individual_delays % Shared delays must have size [1, 1, n_path, n_snap]
+    delay = reshape( delay, 1, 1, size(delay,1), size(delay,2) );
+end
+
 [ hmat_re, hmat_im ] = quadriga_lib.baseband_freq_response( real(h_channel.Pcoeff), imag(h_channel.Pcoeff), ...
-    h_channel.delay, pilot_grid, bandwidth, i_snapshot );
+    delay, pilot_grid, bandwidth, [], [], i_snapshot );
 
 freq_response = complex(hmat_re, hmat_im);
 end

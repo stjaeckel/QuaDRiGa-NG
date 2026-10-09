@@ -228,11 +228,39 @@ if u1 || I1(1) ~= 0
                 for ix = I1'
                     ox = ox + 1;
                     h_channel(ox,oy,oz,ow) = qd_channel([]);
-                    [ h_channel(ox,oy,oz,ow).par, rx_position, tx_position,...
-                        coeff_re, coeff_im, delay, center_frequency, h_channel(ox,oy,oz,ow).name,...
-                        initial_position, path_gain, path_length, path_polarization, path_angles,...
-                        fbs_pos, lbs_pos, no_interact, interact_coord, rx_orientation, tx_orientation ] = ...
-                        quadriga_lib.hdf5_read_channel( fn, [ix,iy,iz,iw], IS );
+                    [ chan, par ] = quadriga_lib.hdf5_read_channel( fn, ix, iy, iz, iw, IS );
+
+                    if isempty( chan ) % No data at this location
+                        h_channel(ox,oy,oz,ow).name = 'empty';
+                        h_channel(ox,oy,oz,ow).initial_position = int32(0);
+                        continue
+                    end
+                    if ~isempty( par )
+                        h_channel(ox,oy,oz,ow).par = par;
+                    end
+                    h_channel(ox,oy,oz,ow).name = chan.name;
+                    initial_position = int32(0);
+                    if isfield( chan, 'initial_position' )
+                        initial_position = chan.initial_position;
+                    end
+
+                    % Structured data is stored in single precision
+                    rx_position = get_field( chan, 'rx_position' );
+                    tx_position = get_field( chan, 'tx_position' );
+                    coeff_re = get_field( chan, 'coeff_re' );
+                    coeff_im = get_field( chan, 'coeff_im' );
+                    delay = get_field( chan, 'delay' );
+                    center_frequency = get_field( chan, 'center_frequency' );
+                    path_gain = get_field( chan, 'path_gain' );
+                    path_length = get_field( chan, 'path_length' );
+                    path_polarization = get_field( chan, 'path_polarization' );
+                    path_angles = get_field( chan, 'path_angles' );
+                    fbs_pos = get_field( chan, 'fbs_pos' );
+                    lbs_pos = get_field( chan, 'lbs_pos' );
+                    no_interact = get_field( chan, 'no_interact' );
+                    interact_coord = get_field( chan, 'interact_coord' );
+                    rx_orientation = get_field( chan, 'rx_orientation' );
+                    tx_orientation = get_field( chan, 'tx_orientation' );
 
                     if ~isempty(coeff_re) && ~isempty(coeff_im)
                         h_channel(ox,oy,oz,ow).coeff = complex(coeff_re, coeff_im);
@@ -294,4 +322,15 @@ if u1 || I1(1) ~= 0
     end
 end
 
+end
+
+function val = get_field( chan, name )
+% Returns a field of the channel struct (empty if not present), double is converted to single
+val = [];
+if isfield( chan, name )
+    val = chan.(name);
+    if isa( val, 'double' )
+        val = single( val );
+    end
+end
 end

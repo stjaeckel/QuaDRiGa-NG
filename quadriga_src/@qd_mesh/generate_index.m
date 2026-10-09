@@ -58,6 +58,7 @@ if h_mesh.no_face <= target_size
 
 else
     [ msh, si, mi ] = quadriga_lib.triangle_mesh_segmentation( h_mesh.mesh, target_size, vec_size );
+    si = si - 1;
     % Note: si is 0-based and mi is 1-based
 
     % Add Padding

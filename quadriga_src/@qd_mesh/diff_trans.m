@@ -107,12 +107,13 @@ else
     mesh = double( h_mesh.mesh(obj_id,:) );
     mtl_prop = double( h_mesh.mtl_prop )';
 end
-mtl_prop = mtl_prop( h_mesh.mtl_index(obj_id), : );
+mtl_ind = h_mesh.mtl_index(obj_id);
+mtl_prop = struct( 'a',mtl_prop(:,1), 'b',mtl_prop(:,2), 'c',mtl_prop(:,3), 'd',mtl_prop(:,4), 'att',mtl_prop(:,5) );
 
 if isempty( h_mesh.Psub_mesh_index )
-    gain = quadriga_lib.calc_diffraction_gain( orig', dest', mesh,  mtl_prop, center_frequency, lod, verbose );
+    gain = quadriga_lib.calc_diffraction_gain( orig', dest', mesh, mtl_ind, mtl_prop, center_frequency, lod, verbose );
 else
-    gain = quadriga_lib.calc_diffraction_gain( orig', dest', mesh,  mtl_prop, center_frequency, lod, verbose, h_mesh.Psub_mesh_index - 1 );
+    gain = quadriga_lib.calc_diffraction_gain( orig', dest', mesh, mtl_ind, mtl_prop, center_frequency, lod, verbose, h_mesh.Psub_mesh_index );
 end
 
 end

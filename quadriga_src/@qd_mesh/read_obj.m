@@ -55,7 +55,7 @@ if ~exist( 'fname','var' ) || isempty( fname )
     error('QuaDRiGa:qd_mesh:read_obj','Filename is not given.');
 end
 
-[ ~, mtl_prop, vert_list, face_ind, obj_ind, mtl_ind, obj_name, mtl_name ] = quadriga_lib.obj_file_read( fname );
+[ ~, vert_list, face_ind, obj_ind, obj_name, mtl_ind, mtl_name, ~, csv_ind, ~, csv_prop ] = quadriga_lib.obj_file_read( fname );
 
 % Read the name of the material library
 i_obj = 0;
@@ -107,7 +107,10 @@ if no_new_mtl ~= 0
     h_mesh.mtl_thickness(:,no_existing_mtl+1:end) = ones(1,no_new_mtl) * 0.1;
 
     for n = 1 : no_new_mtl
-        h_mesh.mtl_prop(:,no_existing_mtl+n) = mtl_prop( find(mtl_ind == uint64(n),1) ,: )';
+        i_csv = csv_ind( find(mtl_ind == uint64(n),1) );
+        if i_csv ~= 0
+            h_mesh.mtl_prop(:,no_existing_mtl+n) = [ csv_prop.a(i_csv); csv_prop.b(i_csv); csv_prop.c(i_csv); csv_prop.d(i_csv); csv_prop.att(i_csv) ];
+        end
     end
 end
 mtl_ind = mtl_ind + uint64(no_existing_mtl);
