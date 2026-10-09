@@ -41,6 +41,8 @@ set(QUADRIGA_LIB_ARGS
     INSTALL_DIR "${CMAKE_SOURCE_DIR}/quadriga_lib"
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+        -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
         -DENABLE_MATLAB=${ENABLE_MATLAB}
         -DENABLE_OCTAVE=${ENABLE_OCTAVE}
         -DENABLE_PYTHON=${ENABLE_PYTHON}
@@ -53,3 +55,23 @@ endif()
 set(QUADRIGA_LIB_A "${CMAKE_SOURCE_DIR}/quadriga_lib/lib/libquadriga.a")
 set(QUADRIGA_LIB_HDF5 "${CMAKE_SOURCE_DIR}/quadriga_lib/lib/libhdf5.a")
 ExternalProject_Add(quadriga_lib ${QUADRIGA_LIB_ARGS})
+
+# Quadriga-lib uses a system (FHS) layout when installed outside its source tree.
+# Move the MEX API, the HTML documentation and the license back to the top level.
+set(QD_DIR "${CMAKE_SOURCE_DIR}/quadriga_lib")
+set(QD_RELOCATE_ARMA "")
+if (ARMA_QD)
+    set(QD_RELOCATE_ARMA
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${QD_DIR}/include/include" "${QD_DIR}/include"
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "${QD_DIR}/include/include")
+endif()
+ExternalProject_Add_Step(quadriga_lib relocate
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${QD_DIR}/+quadriga_lib" "${QD_DIR}/html_docu"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${QD_DIR}/share/quadriga-lib/+quadriga_lib" "${QD_DIR}/+quadriga_lib"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${QD_DIR}/share/doc/quadriga-lib/html" "${QD_DIR}/html_docu"
+    COMMAND ${CMAKE_COMMAND} -E copy "${QD_DIR}/share/doc/quadriga-lib/LICENSE" "${QD_DIR}/LICENSE"
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${QD_DIR}/share"
+    ${QD_RELOCATE_ARMA}
+    DEPENDEES install
+    COMMENT "Relocating MEX API and documentation in ${QD_DIR}"
+)

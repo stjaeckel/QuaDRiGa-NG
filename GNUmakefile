@@ -6,15 +6,22 @@ matlab = ON
 OCTAVE_VERSION := $(shell mkoctfile -v 2>/dev/null)
 MATLAB_BIN = matlab24
 
+# GCC version override. Empty for system default. Note: MATLAB max is 12
+gcc_version = 12
+
+ifneq ($(gcc_version),)
+  CMAKE_CXX_ARG = -D CMAKE_C_COMPILER=gcc-$(gcc_version) -D CMAKE_CXX_COMPILER=g++-$(gcc_version)
+endif
+
 all:   quadriga-lib   moxunit-lib
 
 quadriga-lib:
-	cmake -B build_linux -D CMAKE_INSTALL_PREFIX=.
+	cmake -B build_linux -D CMAKE_INSTALL_PREFIX=. $(CMAKE_CXX_ARG)
 	cmake --build build_linux -j32 
 	cmake --install build_linux
 
 quadriga-lib_hdf5:
-	cmake -B build_hdf5 -D HDF5_QD=ON -D CMAKE_INSTALL_PREFIX=.
+	cmake -B build_hdf5 -D HDF5_QD=ON -D CMAKE_INSTALL_PREFIX=. $(CMAKE_CXX_ARG)
 	cmake --build build_hdf5 -j32 
 	cmake --install build_hdf5
 
