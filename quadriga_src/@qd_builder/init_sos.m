@@ -93,7 +93,7 @@ else
     % ACF
     acf = h_builder.simpar(1,1).autocorrelation_function;
     if strcmp( acf, 'Disable' )     % Disable spatial consistency for SSF
-        acf = 'Comb300';
+        acf = 'Comb256';
         SC_lambda = 0;
         absTOA_lambda = 0;
     end

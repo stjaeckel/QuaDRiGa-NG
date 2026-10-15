@@ -89,14 +89,15 @@ properties
     %   An autocorrelation function (ACF) is a description of the correlation vs. distance.
     %   This function is approximated by a Fourier series. The coefficients of the series can be
     %   used to generate spatially correlated random variables in the qd_sos class. There are 3
-    %   ACF types that can be selected by acf_type. The coefficients are precomputed for 150,
-    %   300, 500, and 1000 sinusoids.
+    %   ACF types that can be selected by acf_type. The coefficients are precomputed for 128,
+    %   256, 512, and 1024 sinusoids. The names of previous versions (150, 300, 500, and 1000
+    %   sinusoids) are mapped to 128, 256, 512, and 1024 sinusoids.
     %
-    %   * Exponential ACF (Exp150, Exp300, Exp500, Exp1000 )
-    %   * Gaussian ACF (Gauss150, Gauss300, Gauss500, Gauss1000 )
-    %   * Combined Gaussian and Exponential ACF (Comb150, Comb300, Comb500, Comb1000)
+    %   * Exponential ACF (Exp128, Exp256, Exp512, Exp1024 )
+    %   * Gaussian ACF (Gauss128, Gauss256, Gauss512, Gauss1024 )
+    %   * Combined Gaussian and Exponential ACF (Comb128, Comb256, Comb512, Comb1024)
     %   * Disable Spatial Consistency for Small-Scale Fading (Disable)
-    autocorrelation_function = 'Comb300';
+    autocorrelation_function = 'Comb256';
 end
 
 properties(Constant)

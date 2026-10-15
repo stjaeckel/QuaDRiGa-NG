@@ -277,7 +277,7 @@ else
         randC = reshape( randC', no_rx_pos, no_tx ).';
         
     else                                            % TX and RX decorrelation distances are different
-        h_sos = qd_sos( 'Comb300', 'Uniform', SC_lambda_rx );
+        h_sos = qd_sos( 'Comb256', 'Uniform', SC_lambda_rx );
         h_sos.dist_decorr(1,2) = SC_lambda_tx;
         randC = h_sos.val( reshape(rx_pos_3d,3,[]),reshape(tx_pos_3d,3,[]) );
         randC = reshape( randC', no_rx_pos, no_tx ).';
