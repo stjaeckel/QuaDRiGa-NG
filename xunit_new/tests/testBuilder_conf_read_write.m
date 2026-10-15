@@ -8,12 +8,12 @@ names = fieldnames( scenpar );
 for n = 1:numel( names )
     if strcmp( names{n}, 'NumClusters' ) || strcmp( names{n}, 'NumSubPaths' )
         scenpar.(names{n}) = 2 + randi(20);
+    elseif strcmp( names{n}, 'NumClusters_min' ) || strcmp( names{n}, 'NF_k1' )
+        scenpar.(names{n}) = randi(2);
     elseif strcmp( names{n}, 'GR_enabled' )
         scenpar.(names{n}) = 1;
-    elseif strcmp( names{n}, 'GR_epsilon' )  
-        scenpar.(names{n}) = rand+1j*rand;
     elseif strcmp( names{n}, 'SubpathMethod' )   
-        scenpar.(names{n}) = 'bla';
+        scenpar.(names{n}) = 'mmMAGIC';
     else
         scenpar.(names{n}) = rand;
     end

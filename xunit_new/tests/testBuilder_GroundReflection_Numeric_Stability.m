@@ -11,11 +11,11 @@ t.positions = [d ; zeros(2,numel(d))];
 b = qd_builder('TwoRayGR');
 b.simpar.center_frequency = 2e9;
 b.simpar.show_progress_bars = 0;
-b.scenpar.GR_epsilon = 10;
+b.gr_epsilon_r = 10;
 b.rx_track = t;
 b.rx_positions = [10,0,2]';
 b.tx_position = [0;0;4];
-gen_parameters(b);
+gen_parameters(b,5);
 
 assertTrue( all( abs( b.EoD- [-atan(2/10) -atan(6/10)]) < 1e-10 ) );
 assertTrue( all( abs( b.EoA- [atan(2/10) -atan(6/10)]) < 1e-10 ) );

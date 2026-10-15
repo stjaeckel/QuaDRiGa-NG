@@ -1,7 +1,7 @@
 function testBuilder_GroundReflection
 %%
 b = qd_builder('TwoRayGR');
-b.scenpar.GR_epsilon = 10;        % Perfect dielectricum
+b.gr_epsilon_r = 10;              % Perfect dielectricum
 
 b.simpar.show_progress_bars = false;
 b.name = 'Tx1';
@@ -28,11 +28,12 @@ R_par     = (epsilon_r .* sin(theta_r) - Z) ./ (epsilon_r .* sin(theta_r) + Z);
 R_per     = ( sin(theta_r) - Z) ./ ( sin(theta_r) + Z);
 R         = ( 0.5*(abs(R_par).^2 + abs(R_per).^2) ).';
 
-gen_parameters(b);
+gen_parameters(b,5);              % Keep the given permittivity
 c = get_channels(b);
 
-% Test if the same epsilon as in the plpar was set
-assertTrue( all( abs( b.gr_epsilon_r - b.scenpar.GR_epsilon ) < 1e-6 ) );
+% Test if the given epsilon was used for all positions
+assertTrue( all( abs( b.gr_epsilon_r - 10 ) < 1e-6 ) );
+assertEqual( size( b.gr_epsilon_r ), [1,2] );
 
 % Are there two paths?
 assertTrue( all( cat(1,c.no_path) == 2 ) );

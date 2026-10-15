@@ -311,53 +311,13 @@ methods
         if isempty( h_builder.Pscenpar )
             out = [];
         else
-            value = h_builder.Pscenpar;
-            a = value.ds_kf;          % delay spread vs k-factor
-            b = value.ds_sf;          % delay spread vs shadowing std
-            c = value.asD_ds;         % departure AS vs delay spread
-            d = value.asA_ds;         % arrival AS vs delay spread
-            e = value.esD_ds;         % departure ES vs delay spread
-            f = value.esA_ds;         % arrival ES vs delay spread
-            g = value.sf_kf;          % shadowing std vs k-factor
-            h = value.asD_kf;         % departure AS vs k-factor
-            k = value.asA_kf;         % arrival AS vs k-factor
-            l = value.esD_kf;         % departure DS vs k-factor
-            m = value.esA_kf;         % arrival DS vs k-factor
-            n = value.asD_sf;         % departure AS vs shadowing std
-            o = value.asA_sf;         % arrival AS vs shadowing std
-            p = value.esD_sf;         % departure ES vs shadowing std
-            q = value.esA_sf;         % arrival ES vs shadowing std
-            r = value.asD_asA;        % departure AS vs arrival AS
-            s = value.esD_asD;        % departure ES vs departure AS
-            t = value.esA_asD;        % arrival ES vs departure AS
-            u = value.esD_asA;        % departure ES vs arrival AS
-            v = value.esA_asA;        % arrival ES vs arrival AS
-            w = value.esD_esA;        % departure ES vs arrival ES
-            x1 = value.xpr_ds;        % xpr vs delay spread
-            x2 = value.xpr_kf;        % xpr vs k-factor
-            x3 = value.xpr_sf;        % xpr vs shadowing
-            x4 = value.xpr_asd;       % xpr vs departure AS
-            x5 = value.xpr_asa;       % xpr vs arrival AS
-            x6 = value.xpr_esd;       % xpr vs departure ES
-            x7 = value.xpr_esa;       % xpr vs arrival ES
-
-            out = [ 1  a  b  c  d  e  f x1;...
-                a  1  g  h  k  l  m x2;...
-                b  g  1  n  o  p  q x3;...
-                c  h  n  1  r  s  t x4;...
-                d  k  o  r  1  u  v x5;...
-                e  l  p  s  u  1  w x6;...
-                f  m  q  t  v  w  1 x7;...
-                x1  x2  x3  x4  x5  x6  x7 1];
+            [ ~, out ] = quadriga_lib.scenpar_validate( h_builder.Pscenpar, false );
         end
     end
     function out = get.lsp_xcorr_chk(h_builder)
         out = false;
         if ~isempty( h_builder.Pscenpar )
-            [~,p] = chol( h_builder.lsp_xcorr, 'lower');
-            if p <= 0
-                out = true;
-            end
+            [ ~, ~, out ] = quadriga_lib.scenpar_validate( h_builder.Pscenpar, false );
         end
     end
     
@@ -447,10 +407,21 @@ methods
 end
 
 methods(Static)
-    [ scenarios , config_folder , file_names ] = supported_scenarios( parse_shortnames )
+    [ scenarios, file_names, file_dir ] = supported_scenarios( parse_shortnames )
     varargout = call_private_fcn( functionName, varargin )
     h_builder = gen_cdl_model( cdl_model, center_frequency, mobile_speed, duration, ds, kf, asd, ...
         asa, esd, esa, cas_factor, sample_density )
+    
+    function h_builder = loadobj( h_builder )
+        % Complete the scenario parameters of a saved object with the current set of fields
+        if isobject( h_builder ) && isstruct( h_builder.Pscenpar ) && ~isempty( h_builder.Pscenpar )
+            scenpar = h_builder.Pscenpar;
+            if isfield( scenpar, 'GR_epsilon' )
+                scenpar = rmfield( scenpar, 'GR_epsilon' );
+            end
+            h_builder.Pscenpar = quadriga_lib.scenpar_validate( scenpar, false );
+        end
+    end
 end
 
 % methods % Legacy parameter generation functions

@@ -4,9 +4,14 @@ function [ scenarios, file_names, file_dir ] = supported_scenarios( parse_shortn
 % Calling object:
 %   None (static method)
 %
+% Description:
+%   The configuration files are searched in the current working directory first and then in the
+%   folder 'config' of QuaDRiGa. A file in the current directory replaces a file of the same name
+%   in the config folder. The list is created by 'quadriga_lib.conf_file_list'.
+%
 % Input:
 %   parse_shortnames
-%   This optional parameter can disable (0) the shortname parsing. This is significantly faster.
+%   This optional parameter can disable (0) the shortname parsing. This is faster.
 %   By default shortname parsing is enabled (1)
 %
 % Output:
@@ -45,77 +50,13 @@ else
     parse_shortnames = true;
 end
 
-% Parse config files in current folder
-files_tmp = dir('*.conf');
+% The config folder is next to the class folder "@qd_builder"
+config_folder = fullfile( fileparts( fileparts( mfilename('fullpath') ) ), 'config' );
 
-files = [];
-m = 1;
-for n = 1:numel(files_tmp)
-    files(m).name = files_tmp(n).name;
-    files(m).dir  = '';
-    m = m + 1;
-end
+[ scenarios, file_names, file_dir ] = quadriga_lib.conf_file_list( { '', config_folder }, parse_shortnames );
 
-% Parse files in config-folder
-quadriga_path = path;
-if isempty( regexp( quadriga_path,';' ) )   % Linux separates path entries by ":"
-    quadriga_path = regexp(quadriga_path, ':?([^:]*quadriga_src)', 'tokens'); % Linux
-else % Windows separated path entries by ";"
-    quadriga_path = regexp(quadriga_path, ':?([^;]*quadriga_src)', 'tokens'); % Windows
-end
-config_folder = fullfile(quadriga_path{1}{1}, 'config');
-files_tmp = dir(fullfile(config_folder, '*.conf'));
-
-for n = 1:numel(files_tmp)
-    files(m).name = files_tmp(n).name;
-    files(m).dir  = config_folder;
-    m = m + 1;
-end
-
-nfiles = numel(files);
-
-scenarios = cell(1,1000);
-if parse_shortnames
-    file_names = cell(1,1000);
-    file_dir   = cell(1,1000);
-end
-
-m = 0;
-for n = 1 : nfiles
-    m = m + 1;
-    [~, scenarios{m}] = fileparts( files(n).name );
-    file_names{m} = files(n).name;
-    file_dir{m}   = files(n).dir;
-    
-    if parse_shortnames
-        % Read the file content to find short names for the scenario
-        file = fopen(fullfile(files(n).dir, files(n).name), 'r');
-        lin = fgets(file);
-        while ischar(lin)
-            p1 = regexp(lin,'[ \t]*ShortName[ \t]*=[ \t]*[A-Za-z0-9_]+','match');
-            if ~isempty(p1)
-                p2 = regexp( p1 ,'=');
-                short_name = regexp( p1{1}(p2{1}+1:end) , '[A-Za-z0-9_]+' ,'match' );
-                
-                if any( strcmp( short_name{1} , scenarios(1:m) ) )
-                    error( ['ShortName "',short_name{1},'" in "',files(n).name,'" is ambiguous.'] )
-                end
-                
-                m = m+1;
-                scenarios{m}  = short_name{1};
-                file_names{m} = files(n).name;
-                file_dir{m}   = files(n).dir;
-            end
-            lin = fgets(file);
-        end
-        fclose(file);
-    end
-end
-
-scenarios = scenarios(1:m);
-if parse_shortnames
-    file_names = file_names(1:m);
-    file_dir = file_dir(1:m);
-end
+scenarios  = scenarios.';
+file_names = file_names.';
+file_dir   = file_dir.';
 
 end

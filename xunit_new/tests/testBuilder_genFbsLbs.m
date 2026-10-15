@@ -1,6 +1,8 @@
 function testBuilder_genFbsLbs
 % This tests the FBS and LBS generation
 
+set_rand_state( 1 );
+
 N = 5;
 L = 10;
 

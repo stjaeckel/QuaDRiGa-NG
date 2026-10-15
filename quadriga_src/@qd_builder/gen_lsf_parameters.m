@@ -307,7 +307,7 @@ else
         end
         
         % Ground Reflection Parameters
-        if use_ground_reflection && h_builder.scenpar.GR_epsilon == 0
+        if use_ground_reflection && isempty( h_builder.gr_epsilon_r )
             
             % Generate spatially correlated random variables
             if isempty( h_builder.gr_sos )
@@ -342,14 +342,11 @@ else
             if any(i2)
                 gr_epsilon_r( :,i2 ) = g_med.'*(1-w2) + g_wet.'*w2;
             end
-            
-        elseif use_ground_reflection
-            gr_epsilon_r = ones( n_freq, n_mobiles ) * h_builder.scenpar.GR_epsilon;
-        else
-            gr_epsilon_r = [];
-        end
-        if isempty( h_builder.gr_epsilon_r )
             h_builder.gr_epsilon_r = gr_epsilon_r;
+            
+        elseif use_ground_reflection && numel( h_builder.gr_epsilon_r ) == 1
+            % A single value set by the user applies to all frequencies and positions
+            h_builder.gr_epsilon_r = ones( n_freq, n_mobiles ) * h_builder.gr_epsilon_r;
         end
         
         % Absolute time-of-arrival offset

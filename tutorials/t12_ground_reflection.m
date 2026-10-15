@@ -11,7 +11,8 @@
 % reflection coefficient will be different for each segment. All ground reflection properties are
 % controlled by the scenario configuration files in the "config" folder of the channel model. The
 % parameter "GR_enabled" activates (1) or deactivates (0) the ground reflection component. The
-% parameter "GR_epsilon" can be used to fix the relative permittivity to a fixed value.
+% relative permittivity can be fixed in the code by setting "qd_builder.gr_epsilon_r" before
+% calling "gen_parameters( h_builder, 5 )".
 
 
 %% Basic setup
