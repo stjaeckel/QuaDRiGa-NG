@@ -21,7 +21,6 @@ assertEqual( b.scenpar.NumClusters,15 );
 
 % Advanced get-function
 b.lsp_xcorr_chk;
-b.lsp_vals;
 b.lsp_xcorr;
 
 % Set funtion

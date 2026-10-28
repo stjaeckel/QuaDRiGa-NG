@@ -196,7 +196,7 @@ else
     gen_fbs_lbs( h_bld,0 );
     gen_ssf_parameters( h_bld,0,0 );
     if isempty( parameters )
-        gen_lsf_parameters( h_bld,0,0 );
+        gen_lsf_parameters( h_bld,0 );
     end
 end
 check_dual_mobility( h_bld, false );

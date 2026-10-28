@@ -1045,9 +1045,8 @@ else
         if n_nlos_clusters > 0
             % Generate XPR, 3GPP TR 38.901, Step 9
             randC       = randn( n_mobiles, n_nlos_paths  );
-            xpr_sigma   = h_builder.lsp_vals(8,2);
-            xpr_mu      = h_builder.lsp_vals(8,1);
-            xpr_nlos    = randC * xpr_sigma + xpr_mu; % dB
+            [ lsp_mu, lsp_sigma ] = lsp_distribution( h_builder, h_builder.tx_position, h_builder.rx_positions );
+            xpr_nlos    = randC .* lsp_sigma(:,1,8) + lsp_mu(:,1,8); % dB
             
             % Draw initial random phases, 3GPP TR 38.901, Step 10
             randC       = rand( n_mobiles, n_nlos_paths, 4 );
@@ -1062,7 +1061,8 @@ else
         
     else
         % Use spatially consistent polarization rotation
-        xpr_sigma = 0.1 * reshape( h_builder.lsp_vals(8,2,:), n_freq, 1 ) * ones(1,n_mobiles);
+        [ ~, lsp_sigma ] = lsp_distribution( h_builder, h_builder.tx_position, h_builder.rx_positions );
+        xpr_sigma = 0.1 * lsp_sigma(:,:,8).';
         xpr_mu = 10*log10(h_builder.xpr);
         
         gamma = zeros( n_mobiles, n_nlos_paths, n_freq );

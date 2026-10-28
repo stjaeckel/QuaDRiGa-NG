@@ -4,7 +4,7 @@ function testBuilder_absTOA_model
 b = qd_builder('3GPP_38.901_InF_NLOS_DH');
 b.simpar.show_progress_bars = 0;
 
-assertTrue( isempty( b.absTOA_sos ));
+assertTrue( isempty( b.lsf_generator ));
 
 b.scenpar.SC_lambda = 0;
 b.scenpar.PerClusterDS = 5;
@@ -27,8 +27,8 @@ b.rx_positions = [ 10,0,1 ; 10,0,1 ; 0,10,1 ; 0,0,5  ]';
 b.check_dual_mobility;
 
 b.init_sos;
-assertEqual( b.absTOA_sos.dist_decorr, b.scenpar.absTOA_lambda );
-assertTrue(  all( abs(b.absTOA_sos.sos_phase(:,1) - b.absTOA_sos.sos_phase(:,2)) < 1e-16 ) ); % Channel reciprocity
+assertEqual( b.lsf_generator.lambda.absTOA_lambda, b.scenpar.absTOA_lambda );
+assertEqual( b.lsf_generator.phase(:,9,1), b.lsf_generator.phase(:,9,2) ); % Channel reciprocity
 
 b.gen_parameters;
 

@@ -83,13 +83,11 @@ elseif h_builder(1,1).no_rx_positions > 0
         h_builder_out(1,r).subpath_coupling = h_builder.subpath_coupling;
         
         % Copy SOS object handles
-        h_builder_out(1,r).sos          = h_builder.sos;
-        h_builder_out(1,r).gr_sos       = h_builder.gr_sos;
+        h_builder_out(1,r).lsf_generator = h_builder.lsf_generator;
         h_builder_out(1,r).path_sos     = h_builder.path_sos;
         h_builder_out(1,r).clst_dl_sos  = h_builder.clst_dl_sos;
         h_builder_out(1,r).xpr_sos      = h_builder.xpr_sos;
         h_builder_out(1,r).pin_sos      = h_builder.pin_sos;
-        h_builder_out(1,r).absTOA_sos   = h_builder.absTOA_sos;
 
         % Split tracks and antennas
         h_builder_out(1,r).tx_position  = h_builder.tx_position(:,r);

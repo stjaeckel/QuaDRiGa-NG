@@ -1,10 +1,14 @@
 function testBuilder_lsf_parity
 % Path loss and large-scale parameters reproduce the stored reference values of all scenarios
 %
-% The reference values are written by 'data/make_lsf_parity_ref.m'. Each scenario is evaluated
-% with the stored phases on a drop of 24 positions (3.5 GHz), a drop of 3 positions (3.5 and
-% 28 GHz), an outdoor track and two indoor tracks, with qd_simulation_parameters.lsf_model set to
-% 'legacy'.
+% The reference values were computed with the original QuaDRiGa implementation of the large-scale
+% model. Each scenario is evaluated with the stored phases on a drop of 24 positions (3.5 GHz), a
+% drop of 3 positions (3.5 and 28 GHz), an outdoor track and two indoor tracks, with
+% qd_simulation_parameters.lsf_model set to 'legacy'. The masks in the data exclude links with a
+% negative LSP standard deviation and 'winner_los' links beyond the breakpoint. Indoor tracks are
+% compared at the first snapshot, where the indoor distance of the original model applies. The
+% shadow fading of the 3GPP baseline mode is compared for scenarios without frequency-offset,
+% distance, height and elevation terms of the SF standard deviation ('sf_base_valid').
 
 d = load( fullfile( fileparts( mfilename('fullpath') ), 'data', 'lsf_parity_ref.mat' ) );
 tol = 1e-12;
@@ -30,11 +34,13 @@ for n = 1 : numel( d.ref )
             assert_close( b.gr_epsilon_r, r.gr, tol, [msg,', ground permittivity'] );
         end
 
-        [ pl, scale_sf ] = b.get_pl;
+        pl = b.get_pl;
         assert_close( pl(:,r.pl_valid), r.pl(:,r.pl_valid), tol, [msg,', path loss'] );
         if r.sf_base_valid
-            sf_base = b.sf .^ scale_sf;
-            assert_close( sf_base(:,r.pl_valid), r.sf_base(:,r.pl_valid), tol, [msg,', baseline SF'] );
+            b.simpar.use_3GPP_baseline = 1;
+            gen_lsf_parameters( b );
+            b.simpar.use_3GPP_baseline = 0;
+            assert_close( b.sf(:,r.pl_valid), r.sf_base(:,r.pl_valid), tol, [msg,', baseline SF'] );
         end
     end
 
@@ -75,26 +81,14 @@ b.tx_position = tx;
 b.rx_positions = rx;
 b.dual_mobility = 0;
 gen_lsf_parameters( b, 0 );
-s = b.scenpar;
-lambda = [ s.DS_lambda, s.KF_lambda, s.SF_lambda, s.AS_D_lambda, s.AS_A_lambda, ...
-    s.ES_D_lambda, s.ES_A_lambda, s.XPR_lambda ];
-mirror = [ 1 2 3 5 4 7 6 8 ];
-lsf_sos = qd_sos([]);
-for g = 1 : 8
-    lsf_sos(1,g) = qd_sos( 'Comb256', 'Normal', lambda(g) );
-    lsf_sos(1,g).sos_phase = [ phase(:,g), phase(:,mirror(g)) ];
+names = { 'DS_lambda','KF_lambda','SF_lambda','AS_D_lambda','AS_A_lambda','ES_D_lambda',...
+    'ES_A_lambda','XPR_lambda','absTOA_lambda','SC_lambda' };
+lambda = struct();
+for g = 1 : numel( names )
+    lambda.( names{g} ) = b.scenpar.( names{g} );
 end
-b.sos = lsf_sos;
-b.absTOA_sos = [];
-if s.absTOA_mu > -30 && s.absTOA_lambda > 0
-    b.absTOA_sos = qd_sos( 'Comb256', 'Normal', s.absTOA_lambda );
-    b.absTOA_sos.sos_phase = phase(:,[9,9]);
-end
-b.gr_sos = [];
-if s.SC_lambda > 0
-    b.gr_sos = qd_sos( 'Comb256', 'Uniform', s.SC_lambda );
-    b.gr_sos.sos_phase = phase(:,[10,10]);
-end
+b.lsf_generator = struct( 'phase', cat( 3, phase, phase(:,[1 2 3 5 4 7 6 8 9 10 11]) ), ...
+    'preset', 'Comb256', 'horizontal', false, 'lambda', lambda );
 end
 
 function assert_close( a, b, tol, msg )

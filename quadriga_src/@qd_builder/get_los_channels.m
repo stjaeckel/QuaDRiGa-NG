@@ -261,11 +261,11 @@ else
         c = c.* exp( -1j*(wave_no.*(repmat(Pr,[1,n_tx,1]) + repmat(Pt,[n_rx,1,1])) + repmat(phase,[n_rx,n_tx,1])) );
         
         % Calculate the path loss
-        [ path_loss , scale_sf ] = h_builder.get_pl;
+        path_loss = h_builder.get_pl;
         if isempty( h_builder.sf )
             rx_power = -path_loss;
         else
-            rx_power = -path_loss + 10*log10( h_builder.sf ) .* scale_sf;
+            rx_power = -path_loss + 10*log10( h_builder.sf );
         end
         rx_power = sqrt( 10.^( 0.1 * rx_power ) );
         

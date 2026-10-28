@@ -544,7 +544,7 @@ plpar.A                 = -10*log10(sum(powL));
 h_builder.scenpar       = scenpar;
 h_builder.plpar         = plpar;
 h_builder.gen_parameters;
-h_builder.sos           = [];
+h_builder.lsf_generator = [];
 
 % Write cluster parameters to the file
 h_builder.taus      = taus;

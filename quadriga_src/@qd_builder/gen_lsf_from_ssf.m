@@ -60,7 +60,7 @@ else
     end
         
     % Remove existing LSF parameters
-    h_builder.gen_lsf_parameters(0,0);
+    h_builder.gen_lsf_parameters(0);
     
     % Get required variables
     n_freq = h_builder.no_freq;

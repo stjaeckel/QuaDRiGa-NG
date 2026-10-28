@@ -75,7 +75,7 @@ bx = split_rx(ba);
 assertEqual( bld(1,5).gain, bx(1,5).gain );
 assertEqual( bld(1,3).taus, bx(1,3).taus );
 assertEqual( bld(1,7).xprmat, bx(1,7).xprmat );
-assertEqual( bld(1,2).sos(1,1).sos_phase, bx(1,2).sos(1,1).sos_phase );
+assertEqual( bld(1,2).lsf_generator, bx(1,2).lsf_generator );
 
 % Check results - LOS and GR path should not change, NLOS should be added
 cnt = 0;
@@ -160,7 +160,7 @@ end
 bx = add_paths( b );
 
 % Check if the same SOS random generator were used
-assertEqual( bx(1,1).sos(1,1).sos_phase, b(1,1).sos(1,1).sos_phase );
+assertEqual( bx(1,1).lsf_generator, b(1,1).lsf_generator );
 
 % Check results
 cnt = 0;

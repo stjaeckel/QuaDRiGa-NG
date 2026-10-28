@@ -33,25 +33,29 @@ b(1,4).rx_positions = [10 20 ;10 20 ;1.5 1.4];
 %% Init SOS
 init_sos( b );
 
-assertFalse( isempty( b(1,1).sos ) );
-assertFalse( isempty( b(1,1).gr_sos ) );
-assertTrue( isempty( b(1,1).absTOA_sos ) );
-assertFalse( isempty( b(1,2).sos ) );
-assertFalse( isempty( b(1,2).absTOA_sos ) );
-assertFalse( isempty( b(1,3).sos ) );
-assertTrue( isempty( b(1,4).absTOA_sos ) );
+assertFalse( isempty( b(1,1).lsf_generator ) );
+assertFalse( isempty( b(1,2).lsf_generator ) );
+assertFalse( isempty( b(1,3).lsf_generator ) );
+assertFalse( isempty( b(1,4).lsf_generator ) );
 assertTrue( isempty( b(1,4).path_sos ) );
+assertEqual( size( b(1,1).lsf_generator.phase ), [256, 11, 2] );
+assertTrue( b(1,1).lsf_generator.horizontal );
+b(1,1).simpar.lsf_model = 'legacy';
+init_sos( b(1,1) );
+assertFalse( b(1,1).lsf_generator.horizontal );
+b(1,1).simpar.lsf_model = '38.901';
+init_sos( b(1,1) );
 
-ph = b(1,1).sos(1,1).sos_phase;
+ph = b(1,1).lsf_generator.phase;
 
 init_sos(b,2);
-assertEqual(  ph, b(1,1).sos(1,1).sos_phase );
+assertEqual(  ph, b(1,1).lsf_generator.phase );
 
 init_sos(b(1,1));
-assertTrue( all(abs(ph(:) - b(1,1).sos(1,1).sos_phase(:) ) > 1e-5) );
+assertTrue( all(abs(ph(:) - b(1,1).lsf_generator.phase(:) ) > 1e-5) );
 
 init_sos(b(1,3),0);
-assertTrue( isempty( b(1,3).sos ) );
+assertTrue( isempty( b(1,3).lsf_generator ) );
 
 
 %% LSF Parameters
@@ -79,7 +83,7 @@ assertTrue( isempty( b(1,1).ds ) );
 assertTrue( isempty( b(1,1).gr_epsilon_r ) );
 assertTrue( isempty( b(1,2).absTOA_offset ) );
 
-gen_lsf_parameters( b,[],0 ); % Same SOS - Same results
+gen_lsf_parameters( b,[] ); % Same SOS - Same results
 
 assertEqual( ds , b(1,1).ds );
 assertEqual( gr_epsilon_r , b(1,1).gr_epsilon_r );

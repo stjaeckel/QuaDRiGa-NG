@@ -12,7 +12,7 @@ b.tx_position = [0;0;25];
 
 b.gen_parameters(1);    % Gen LSF only
 
-assertTrue( ~isempty( b.sos ) );
+assertTrue( ~isempty( b.lsf_generator ) );
 assertTrue( ~isempty( b.ds ) );
 assertTrue( isempty( b.NumClusters ) );
 assertTrue( isempty( b.taus ) );
@@ -40,7 +40,7 @@ assertTrue( b.NumClusters > b.scenpar.NumClusters );
 
 b.gen_parameters(0);
 
-assertTrue( isempty( b.sos ) );
+assertTrue( isempty( b.lsf_generator ) );
 assertTrue( isempty( b.ds ) );
 assertTrue( isempty( b.NumClusters ) );
 assertTrue( isempty( b.taus ) );
@@ -50,7 +50,7 @@ assertTrue( isempty( b.lbs_pos ) );
 b.gen_parameters(4);
 
 assertTrue( b.NumClusters > b.scenpar.NumClusters );
-assertTrue( ~isempty( b.sos ) );
+assertTrue( ~isempty( b.lsf_generator ) );
 assertTrue( ~isempty( b.ds ) );
 assertTrue( ~isempty( b.NumClusters ) );
 assertTrue( ~isempty( b.taus ) );

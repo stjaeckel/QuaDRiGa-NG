@@ -1,5 +1,5 @@
-function [ loss, scale_sf, loss_init, scale_sf_init ] = get_pl( h_builder, evaltrack, alt_plpar, txpos )
-%GET_PL Path loss and shadow-fading scaling of the path-loss model
+function [ loss, sf_sigma, loss_init, sf_sigma_init ] = get_pl( h_builder, evaltrack, alt_plpar, txpos )
+%GET_PL Path loss and shadow-fading standard deviation of the path-loss model
 %
 % Calling object:
 %   Single object
@@ -11,7 +11,9 @@ function [ loss, scale_sf, loss_init, scale_sf_init ] = get_pl( h_builder, evalt
 %   For an indoor terminal, the path-loss model uses the geometric distance between Tx and Rx
 %   (3GPP TR 38.901 eq. 7.4-1). With qd_simulation_parameters.lsf_model = 'legacy', it uses the
 %   outdoor distance, which is reduced by the indoor 2D distance 'evaltrack.par.o2i_d2din'
-%   (minimum outdoor distance 10 m).
+%   (minimum outdoor distance 10 m). If the model uses a random environment height ('PL_hE_rand'),
+%   it is taken from the large-scale generators of the builder, at the initial position for a
+%   track.
 %
 % Input:
 %   evaltrack
@@ -34,17 +36,16 @@ function [ loss, scale_sf, loss_init, scale_sf_init ] = get_pl( h_builder, evalt
 %   loss
 %   The path loss in [dB]; size [ n_freq, n_pos ]
 %
-%   scale_sf
-%   Ratio of the shadow-fading standard deviation of the path-loss model and the scenario value
-%   'SF_sigma + SF_delta * log10( f_GHz )'; it scales the shadow fading in [dB]. For a track, the
-%   ratio is averaged over the track positions.
+%   sf_sigma
+%   The shadow-fading standard deviation in [dB] of the path-loss model, or of the scenario
+%   parameters if the model does not define it; size [ n_freq, n_pos ]
 %
 %   loss_init
 %   The path loss in [dB] for the initial position of the "evaltrack" object. Returns an empty array
 %   if no "evaltrack" is given.
 %
-%   scale_sf_init
-%   "scale_sf" for the initial position of the "evaltrack" object. Returns an empty array
+%   sf_sigma_init
+%   "sf_sigma" for the initial position of the "evaltrack" object. Returns an empty array
 %   if no "evaltrack" is given.
 %
 %
@@ -147,31 +148,35 @@ end
 
 if nP == 0
     loss = zeros( nF,0 );
-    scale_sf = loss;
+    sf_sigma = loss;
 else
-    [ loss, sf_sigma ] = quadriga_lib.path_loss( par, h_builder.scenpar, fc, txpos.', rxpos.', d2d_in );
+    % Random environment height from the large-scale generators
+    rnd_he = [];
+    if isstruct( par ) && isfield( par,'hE_rand' ) && par.hE_rand ~= 0 && ~isempty( h_builder.lsf_generator )
+        if h_builder.dual_mobility == -1
+            h_builder.check_dual_mobility( false );
+        end
+        gen = h_builder.lsf_generator;
+        rnd = quadriga_lib.lsf_draw( gen.lambda, gen.phase, txpos.', rxpos.', [], ...
+            logical( h_builder.dual_mobility ), gen.preset, gen.horizontal );
+        rnd_he = rnd(:,11);
+        if use_track
+            rnd_he(:) = rnd_he( end );
+        end
+    end
+    [ loss, sf_sigma ] = quadriga_lib.path_loss( par, h_builder.scenpar, fc, txpos.', rxpos.', d2d_in, rnd_he );
     loss = loss.' + o2i_loss * oP;
     sf_sigma = sf_sigma.';
-    if use_track
-        sf_sigma = mean( sf_sigma,2 ) * oP;
-    end
-
-    SF_sigma_scenpar = h_builder.scenpar.SF_sigma + h_builder.scenpar.SF_delta * log10( fc.' / 1e9 );
-    if any( sf_sigma(:) ~= 0 ) && all( SF_sigma_scenpar ~= 0 )
-        scale_sf = sf_sigma ./ ( SF_sigma_scenpar * oP );
-    else
-        scale_sf = ones( size( sf_sigma ) );
-    end
 end
 
 if use_track
     loss_init       = loss(:,end);
-    scale_sf_init   = scale_sf(:,end);
+    sf_sigma_init   = sf_sigma(:,end);
     loss            = loss(:,1:end-1);
-    scale_sf        = scale_sf(:,1:end-1);
+    sf_sigma        = sf_sigma(:,1:end-1);
 else
     loss_init       = [];
-    scale_sf_init   = [];
+    sf_sigma_init   = [];
 end
 
 end

@@ -182,13 +182,13 @@ for i_bs = 1 : n_bs
         h_builder(1,i_bs) = qd_builder;
         h_builder(1,i_bs).scenpar = scenario.scenpar;
         h_builder(1,i_bs).plpar   = scenario.plpar;
-        h_builder(1,i_bs).sos     = scenario.sos;
+        h_builder(1,i_bs).lsf_generator = scenario.lsf_generator;
         
     elseif isa( scenario ,'qd_builder' ) && numel( scenario ) == h_layout.no_tx
         h_builder(1,i_bs) = qd_builder;
         h_builder(1,i_bs).scenpar = scenario(i_bs).scenpar;
         h_builder(1,i_bs).plpar   = scenario(i_bs).plpar;
-        h_builder(1,i_bs).sos     = scenario(i_bs).sos;
+        h_builder(1,i_bs).lsf_generator = scenario(i_bs).lsf_generator;
         
     elseif iscell( scenario ) && numel( scenario ) == h_layout.no_tx
         try

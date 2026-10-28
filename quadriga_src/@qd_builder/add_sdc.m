@@ -421,30 +421,33 @@ for iP = 1 : size( iB,2 )
     h_bld.rx_positions = rx_pos(:,iP);
     h_bld.check_dual_mobility( false );
     h_bld.gen_parameters;
-    h_bld.sos = [];
+    h_bld.lsf_generator = [];
+    
+    % Distribution of the LSPs of the link
+    [ lsp_mu, lsp_sigma ] = lsp_distribution( h_builder(i1,i2), tx_pos(:,iP), rx_pos(:,iP) );
     
     if isempty( pos_rel )    % Create relative SDC positions
         
         switch pos_reference
             case { 'absolute','rx_abs','rx_heading','rx_full' }
                 if isempty( azimuth )
-                    mu  = 10^(mean( h_builder(i1,i2).lsp_vals(5,1,:) ));    % Mean ASA in [deg]
+                    mu  = 10^(mean( lsp_mu(1,:,5) ));    % Mean ASA in [deg]
                     tmp = 3.465 * (rand( 1,n_sdc )-0.5);                    % Random variable with zero-mean, unit STD
                     azimuth = mu * tmp * pi/180;                            % Azimuth angle in [rad]
                 end
                 if isempty( elevation )
-                    mu  = 10^(mean( h_builder(i1,i2).lsp_vals(7,1,:) ));    % Mean ESA in [deg]
+                    mu  = 10^(mean( lsp_mu(1,:,7) ));    % Mean ESA in [deg]
                     tmp = 3.465 * (rand( 1,n_sdc )-0.5);                    % Random variable with zero-mean, unit STD
                     elevation = mu * tmp * pi/180;                          % Elevation angle in [rad]
                 end
             otherwise % Tx is reference
                 if isempty( azimuth )
-                    mu  = 10^(mean( h_builder(i1,i2).lsp_vals(4,1,:) ));    % Mean ASD in [deg]
+                    mu  = 10^(mean( lsp_mu(1,:,4) ));    % Mean ASD in [deg]
                     tmp = 3.465 * (rand( 1,n_sdc )-0.5);                    % Random variable with zero-mean, unit STD
                     azimuth = mu * tmp * pi/180;                            % Azimuth angle in [rad]
                 end
                 if isempty( elevation )
-                    mu  = 10^(mean( h_builder(i1,i2).lsp_vals(6,1,:) ));    % Mean ESD in [deg]
+                    mu  = 10^(mean( lsp_mu(1,:,6) ));    % Mean ESD in [deg]
                     tmp = 3.465 * (rand( 1,n_sdc )-0.5);                    % Random variable with zero-mean, unit STD
                     elevation = mu * tmp * pi/180;                          % Elevation angle in [rad]
                 end
@@ -577,8 +580,8 @@ for iP = 1 : size( iB,2 )
     
     % Obtain the XPR for each SDC in the current builder
     if isempty( xpr_dB ) % draw from distribution in "h_builder"
-        xpr_mu = reshape( h_builder(i1,i2).lsp_vals(8,1,:), n_freq, 1 );
-        xpr_sigma = reshape( h_builder(i1,i2).lsp_vals(8,2,:), n_freq, 1 );
+        xpr_mu = reshape( lsp_mu(1,:,8), n_freq, 1 );
+        xpr_sigma = reshape( lsp_sigma(1,:,8), n_freq, 1 );
         xpr_bld = repmat( randn(1,n_sdc), n_freq,1 ) .* repmat(xpr_sigma,1,n_sdc) + repmat( xpr_mu,1,n_sdc);
     else % get from input variables
         xpr_bld = repmat( xpr_dB, n_freq, 1 );
@@ -587,7 +590,7 @@ for iP = 1 : size( iB,2 )
     % Calculate the polarization transfer matrix
     xprmat = zeros( 4, sum(NumSubPaths), n_freq );
     for iF = 1 : n_freq
-        xpr_sigma = 0.1 * h_builder(i1,i2).lsp_vals(8,2,iF);                % Random XPR variations
+        xpr_sigma = 0.1 * lsp_sigma(1,iF,8);                % Random XPR variations
         xpr_mu = clst_expand( xpr_bld(iF,:) , NumSubPaths );                % Average XPR
         
         % Calculate the linear XPR

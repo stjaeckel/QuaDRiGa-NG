@@ -426,12 +426,12 @@ else
         coeff = coeff .* repmat( p_correct, [1,1,n_snapshots] );
 
         % Now we apply the K-Factor and the shadowing profile
-        if use_3GPP_baseline || isempty( h_builder.sos )
+        if use_3GPP_baseline || isempty( h_builder.lsf_generator )
 
             % Get the PL for the initial position only
-            [ ~, ~, path_loss , scale_sf ] = h_builder.get_pl( h_builder.rx_track(1,i_mobile),...
+            [ ~, ~, path_loss ] = h_builder.get_pl( h_builder.rx_track(1,i_mobile),...
                 [],h_builder.tx_track(1,i_mobile) );
-            rx_power = -path_loss + 10*log10( h_builder.sf(1,i_mobile) ) .* scale_sf;
+            rx_power = -path_loss + 10*log10( h_builder.sf(1,i_mobile) );
             rx_power = sqrt( 10.^( 0.1 * rx_power ) );
 
             % The initial KF is already applied in path powers. Here,

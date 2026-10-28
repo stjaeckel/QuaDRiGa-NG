@@ -79,21 +79,22 @@ ox =  ones(nx,1,'uint8');
 oy =  ones(ny,1,'uint8');
 oz =  ones(nz,1,'uint8');
 
-x = reshape( single(xc) , 1, [] );
+x = reshape( double(xc) , 1, [] );
 x = x( oy,:,oz );
 x = x(:);
 
-y = reshape( single(yc) , [] , 1 );
+y = reshape( double(yc) , [] , 1 );
 y = y( :,ox,oz );
 y = y(:);
 
-z = reshape( single(zc) , 1 , 1, []  );
+z = reshape( double(zc) , 1 , 1, []  );
 z = z( oy,ox,: );
 z = z(:);
 
-[ ds, kf, sf, asD, asA, esD, esA, xpr ] = gen_lsf_parameters( h_builder, 3, 0, h_builder.tx_position, [x,y,z].' );
-
-map = [ ds; kf; sf; asD; asA; esD; esA; xpr ].';
-map = reshape( map, ny, nx, nz, [] );
+if isempty( h_builder.lsf_generator )
+    error('QuaDRiGa:qd_builder:get_lsp_map','Random generators are not initialized.');
+end
+lsp = lsf_eval( h_builder, h_builder.tx_position(:,1), [x,y,z].', false );
+map = reshape( lsp, ny, nx, nz, 8 );
 
 end

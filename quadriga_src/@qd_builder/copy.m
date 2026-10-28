@@ -53,7 +53,7 @@ if ~exist( 'in','var' )
                         copy_simpar = false;
                         h_simpar = out(j1,j2).simpar;
                     end
-                    if copy_sos && ~isempty( obj(i1,i2).sos ) && ~isempty( obj(j1,j2).sos ) && qf.eqo( obj(i1,i2).sos(1,1), obj(j1,j2).sos(1,1) )
+                    if copy_sos && ~isempty( obj(i1,i2).path_sos ) && ~isempty( obj(j1,j2).path_sos ) && qf.eqo( obj(i1,i2).path_sos(1,1), obj(j1,j2).path_sos(1,1) )
                         copy_sos = false;
                         h_sos = [j1,j2];
                     end
@@ -70,13 +70,10 @@ if ~exist( 'in','var' )
             if ~copy_sos
                 j1 = h_sos(1);
                 j2 = h_sos(2);
-                out(i1,i2).sos = out(j1,j2).sos;
                 out(i1,i2).path_sos = out(j1,j2).path_sos;
                 out(i1,i2).xpr_sos = out(j1,j2).xpr_sos;
                 out(i1,i2).pin_sos = out(j1,j2).pin_sos;
                 out(i1,i2).clst_dl_sos = out(j1,j2).clst_dl_sos;
-                out(i1,i2).gr_sos = out(j1,j2).gr_sos;
-                out(i1,i2).absTOA_sos = out(j1,j2).absTOA_sos;
             end
             
             m = qf.eqo( obj(i1,i2), obj ); % Determine equal handles
@@ -149,7 +146,8 @@ else
     % The list of properties that need to be copied
     prop = {'name','plpar','tx_position','rx_positions','ds','kf','sf','asD','asA','esD','esA','xpr',...
         'gr_epsilon_r','absTOA_offset','NumClusters','NumSubPaths','taus','gain','AoD','AoA','EoD','EoA',...
-        'xprmat','pin','subpath_coupling','fbs_pos','lbs_pos','dual_mobility','Pscenario','Pscenpar','pow_wo_kf'};
+        'xprmat','pin','subpath_coupling','fbs_pos','lbs_pos','dual_mobility','Pscenario','Pscenpar','pow_wo_kf',...
+        'lsf_generator'};
     
     % Empty outout
     out = [];
@@ -178,7 +176,7 @@ else
     
     % SOS Generators
     if copy_sos
-        prop = {'sos','path_sos','xpr_sos','pin_sos','clst_dl_sos','gr_sos','absTOA_sos'};
+        prop = {'path_sos','xpr_sos','pin_sos','clst_dl_sos'};
         for m = 1 : numel(prop)
             if ~isempty( in.( prop{m} ) )
                 sic = size( in.( prop{m} ) );                   % Size of SOS object array

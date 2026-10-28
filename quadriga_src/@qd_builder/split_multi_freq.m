@@ -121,8 +121,7 @@ elseif n_freq > 1
             h_builder_out(1,f).absTOA_offset = h_builder.absTOA_offset;
             
             % Split SOS objects
-            h_builder_out(1,f).sos          = h_builder.sos;
-            h_builder_out(1,f).gr_sos       = h_builder.gr_sos;
+            h_builder_out(1,f).lsf_generator = h_builder.lsf_generator;
             h_builder_out(1,f).path_sos     = h_builder.path_sos;
             h_builder_out(1,f).clst_dl_sos  = h_builder.clst_dl_sos;
             if ~isempty( h_builder.xpr_sos )
@@ -131,7 +130,6 @@ elseif n_freq > 1
             if ~isempty( h_builder.pin_sos )
                 h_builder_out(1,f).pin_sos  = h_builder.pin_sos(:,:,f);
             end
-            h_builder_out(1,f).absTOA_sos   = h_builder.absTOA_sos;
             
             % Split the LSF variables
             if split_lsf

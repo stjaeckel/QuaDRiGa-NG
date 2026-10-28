@@ -80,7 +80,6 @@ properties
 end    
 
 properties(Dependent,SetAccess=protected)
-    lsp_vals                    % The distribution values of the LSPs
     lsp_xcorr_chk               % Indicator if cross-correlation matrix is positive definite
 end
 
@@ -89,13 +88,17 @@ properties(Dependent)
 end
     
 properties
-    sos = [];                  	% The large-scale parameter SOS generators
+    % Random generators of the large-scale parameters (struct, see 'init_sos')
+    %   phase       Phases of the 11 generators, [n_coeff, 11, 2], from quadriga_lib.lsf_init_phases
+    %   preset      Sum-of-sinusoids preset, e.g. 'Comb256'
+    %   horizontal  true: correlation in the horizontal plane, false: 3D correlation
+    %   lambda      Decorrelation distances of the generators (struct with the scenpar fields
+    %               DS_lambda ... XPR_lambda, absTOA_lambda, SC_lambda)
+    lsf_generator = [];
     path_sos = [];              % The SOS generators for the generation of MPCs
     xpr_sos = [];               % The SOS generators for the generation of the linear NLOS polarization
     pin_sos = [];               % The SOS generators for the generation of initial phases
     clst_dl_sos = [];           % The SOS generators for the generation per-cluster delay offsets
-    gr_sos = [];                % The SOS generator for the ground reflection coefficient
-    absTOA_sos = [];            % The SOS generator for the absolute time-of-arrival offset
     
     % A list of random number used to determine for the mutual coupling of subpaths at the Tx and Rx.
     %   The dimensions correspond to the angle (AoD, AoA, EoD, EoA), the path index and the number
@@ -228,83 +231,6 @@ methods
             else
                 out = h_builder.gain ./ repmat(reshape(10.^(-0.1*PL.').*SF.',no_rx,1,no_fr),[1,no_cl,1]);
             end
-        end
-    end
-    function out = get.lsp_vals(h_builder)
-        if isempty( h_builder.Pscenpar )
-            out = [];
-        else
-            % Carrier frequency in GHz
-            f_GHz = h_builder.simpar(1,1).center_frequency / 1e9;
-            oF = ones( 1,numel( f_GHz ));
-            o8 = ones( 8,1 );
-            
-            scp = h_builder.Pscenpar;
-            
-            % Reference frequency offset (omega)
-            omega = [ scp.DS_omega; scp.KF_omega; scp.SF_omega; scp.AS_D_omega; ...
-                scp.AS_A_omega; scp.ES_D_omega; scp.ES_A_omega; scp.XPR_omega ];
-            
-            % Reference values (mu) including the frequency scaling
-            mu = [ scp.DS_mu; scp.KF_mu; 0; scp.AS_D_mu; scp.AS_A_mu;...
-                scp.ES_D_mu; scp.ES_A_mu; scp.XPR_mu ];
-            gammap = [ scp.DS_gamma;scp.KF_gamma;0; scp.AS_D_gamma; ...
-                scp.AS_A_gamma ;scp.ES_D_gamma ;scp.ES_A_gamma; scp.XPR_gamma];
-            mu = mu( :,oF ) + gammap(:,oF) .* log10( omega(:,oF) + f_GHz(o8,:) );
-            
-            % STD of the LSPs (sigma) including the frequency scaling
-            sigma = [ scp.DS_sigma;scp.KF_sigma;scp.SF_sigma; scp.AS_D_sigma;...
-                scp.AS_A_sigma;scp.ES_D_sigma;scp.ES_A_sigma; scp.XPR_sigma ];
-            delta = [ scp.DS_delta;scp.KF_delta;scp.SF_delta; scp.AS_D_delta;...
-                scp.AS_A_delta;scp.ES_D_delta;scp.ES_A_delta; scp.XPR_delta ];
-            sigma = sigma( :,oF ) + delta(:,oF) .* log10( omega(:,oF) + f_GHz(o8,:) );
-            sigma( sigma<0 ) = 0;
-            
-            % Decorr dist (lambda)
-            lambda = [ scp.DS_lambda;scp.KF_lambda;scp.SF_lambda;...
-                scp.AS_D_lambda;scp.AS_A_lambda;scp.ES_D_lambda;...
-                scp.ES_A_lambda; scp.XPR_lambda ];
-            lambda = lambda( :,oF );
-            
-            % Distance-dependence (epsilon) of the reference value
-            epsilon = [ scp.DS_epsilon; scp.KF_epsilon; 0;...
-                scp.AS_D_epsilon; scp.AS_A_epsilon; scp.ES_D_epsilon;...
-                scp.ES_A_epsilon; scp.XPR_epsilon ];
-            epsilon = epsilon( :,oF );
-            
-            % Height-dependence (zeta) of the reference value
-            zeta = [ scp.DS_zeta; scp.KF_zeta; 0;...
-                scp.AS_D_zeta; scp.AS_A_zeta; scp.ES_D_zeta;...
-                scp.ES_A_zeta; scp.XPR_zeta ];
-            zeta = zeta( :,oF );
-            
-            % Elevation-dependence (alpha) of the reference value
-            alpha = [ scp.DS_alpha; scp.KF_alpha; 0;...
-                scp.AS_D_alpha; scp.AS_A_alpha; scp.ES_D_alpha;...
-                scp.ES_A_alpha; scp.XPR_alpha ];
-            alpha = alpha( :,oF );
-            
-            % Distance-dependence (kappa) of the reference STD
-            kappap = [ scp.DS_kappa; scp.KF_kappa; scp.SF_kappa;...
-                scp.AS_D_kappa; scp.AS_A_kappa; scp.ES_D_kappa;...
-                scp.ES_A_kappa; scp.XPR_kappa ];
-            kappap = kappap( :,oF );
-            
-            % Height-dependence (tau) of the reference STD
-            tau = [ scp.DS_tau; scp.KF_tau; scp.SF_tau;...
-                scp.AS_D_tau; scp.AS_A_tau; scp.ES_D_tau;...
-                scp.ES_A_tau; scp.XPR_tau ];
-            tau = tau( :,oF );
-            
-            % Elevation-dependence (beta) of the reference STD
-            beta = [ scp.DS_beta; scp.KF_beta; scp.SF_beta;...
-                scp.AS_D_beta; scp.AS_A_beta; scp.ES_D_beta;...
-                scp.ES_A_beta; scp.XPR_beta ];
-            beta = beta( :,oF );
-            
-            % Assemble output
-            out = [mu(:), sigma(:), lambda(:), epsilon(:), zeta(:), alpha(:), kappap(:), tau(:), beta(:)];
-            out = permute( reshape( out, [],numel( f_GHz ),9 ),[1,3,2] );
         end
     end
     function out = get.lsp_xcorr(h_builder)

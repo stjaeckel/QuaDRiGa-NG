@@ -35,7 +35,7 @@ h_builder.plpar         = h_cb( i1,i2 ).plpar;
 h_builder.simpar        = h_cb( i1,i2 ).simpar;
 h_builder.tx_array      = h_cb( i1,i2 ).tx_array( :,is );
 h_builder.rx_array      = h_cb( i1,i2 ).rx_array( :,is );
-h_builder.sos           = h_cb( i1,i2 ).sos;
+h_builder.lsf_generator = h_cb( i1,i2 ).lsf_generator;
 
 h_builder.tx_track      = h_cb( i1,i2 ).tx_track( 1,is );
 h_builder.rx_track      = h_cb( i1,i2 ).rx_track( 1,is );

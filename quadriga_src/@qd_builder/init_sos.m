@@ -6,9 +6,17 @@ function init_sos( h_builder, usage )
 %
 % Description:
 %   This method initializes all random number generators of the "qd_builder" object array. The
-%   results are stored in the properties "sos", "gr_sos", "path_sos", "xpr_sos", "pin_sos", and
+%   results are stored in the properties "lsf_generator", "path_sos", "xpr_sos", "pin_sos", and
 %   "clst_dl_sos". Once initialized, the "qd_builder" object will generate identical parameters and
 %   channels. Note that this does not work for 3GPP baseline simulations.
+%
+%   The phases of the large-scale generators are drawn by quadriga_lib.lsf_init_phases with a seed
+%   from MATLAB's "rand"; the sample mean of each normal field over the Rx positions (and Tx
+%   positions in dual mobility) is removed. The sum-of-sinusoids preset is given by
+%   "qd_simulation_parameters.autocorrelation_function" ('Comb256' for 'Disable', which sets the
+%   decorrelation distances of the ground permittivity and the absolute TOA to 0). With
+%   "qd_simulation_parameters.lsf_model = 'legacy'", the large-scale parameters are correlated in 3D
+%   space, otherwise in the horizontal plane.
 %
 % Input:
 %   usage
@@ -55,13 +63,11 @@ else
     
     % Remove existing parameters
     if usage == 0 || usage == 1
-        h_builder.sos = [];
+        h_builder.lsf_generator = [];
         h_builder.path_sos = [];
         h_builder.xpr_sos = [];
         h_builder.pin_sos = [];
         h_builder.clst_dl_sos = [];
-        h_builder.gr_sos = [];
-        h_builder.absTOA_sos = [];
         h_builder.subpath_coupling = [];
     end
     
@@ -84,18 +90,12 @@ else
     
     % Spatial consistency decorrelation distance in [m]
     SC_lambda = h_builder.scenpar.SC_lambda;
-    if h_builder.scenpar.absTOA_mu > -30
-        absTOA_lambda = h_builder.scenpar.absTOA_lambda;
-    else
-        absTOA_lambda = 0;
-    end
     
     % ACF
     acf = h_builder.simpar(1,1).autocorrelation_function;
     if strcmp( acf, 'Disable' )     % Disable spatial consistency for SSF
         acf = 'Comb256';
         SC_lambda = 0;
-        absTOA_lambda = 0;
     end
     
     use_ground_reflection = logical( h_builder.scenpar.GR_enabled );
@@ -109,60 +109,9 @@ else
     % Number of frequencies
     F = numel( h_builder.simpar(1,1).center_frequency );
     
-    % Initialize SOS generators for the LSF model
-    lambda = h_builder.lsp_vals(:,3,1);
-    if isempty( h_builder.sos )
-        lsf_sos = qd_sos([]);
-        
-        lsf_sos(1,1) = qd_sos( acf, 'Normal', lambda(1) );  % DS
-        lsf_sos(1,2) = qd_sos( acf, 'Normal', lambda(2) );  % KF
-        lsf_sos(1,3) = qd_sos( acf, 'Normal', lambda(3) );  % SF
-        lsf_sos(1,4) = qd_sos( acf, 'Normal', lambda(4) );  % ASD
-        lsf_sos(1,5) = qd_sos( acf, 'Normal', lambda(5) );  % ASA
-        lsf_sos(1,6) = qd_sos( acf, 'Normal', lambda(6) );  % ESD
-        lsf_sos(1,7) = qd_sos( acf, 'Normal', lambda(7) );  % ESA
-        lsf_sos(1,8) = qd_sos( acf, 'Normal', lambda(8) );  % XPR
-        
-        if dual_mobility && h_builder.no_rx_positions > 2
-            remove_bias( lsf_sos, h_builder.rx_positions, h_builder.tx_position );
-        elseif h_builder.no_rx_positions > 2
-            remove_bias( lsf_sos, h_builder.rx_positions );
-        end
-        
-        lsf_sos(1,1).sos_phase(:,2) = lsf_sos(1,1).sos_phase(:,1);  % Delays (are identical if Tx and Rx positions are swapped)
-        lsf_sos(1,2).sos_phase(:,2) = lsf_sos(1,2).sos_phase(:,1);  % K-Factor (is identical if Tx and Rx positions are swapped)
-        lsf_sos(1,3).sos_phase(:,2) = lsf_sos(1,3).sos_phase(:,1);  % Shadow-Fading (is identical if Tx and Rx positions are swapped)
-        lsf_sos(1,8).sos_phase(:,2) = lsf_sos(1,8).sos_phase(:,1);  % XPR (is identical if Tx and Rx positions are swapped)
-        
-        lsf_sos(1,4).sos_phase(:,1) = lsf_sos(1,5).sos_phase(:,2);  % Azimuth angles 
-        lsf_sos(1,5).sos_phase(:,1) = lsf_sos(1,4).sos_phase(:,2);  % (departure become arrival angles if positions are swapped)
-        
-        lsf_sos(1,6).sos_phase(:,1) = lsf_sos(1,7).sos_phase(:,2);  % Elevation angles 
-        lsf_sos(1,7).sos_phase(:,1) = lsf_sos(1,6).sos_phase(:,2);  % (departure become arrival angles if positions are swapped)
-        
-        h_builder.sos = lsf_sos;
-    end
-    
-    % SOS generator for spatially correlated absolute time-of-arrival
-    if ~h_builder.simpar(1,1).use_3GPP_baseline && absTOA_lambda > 0 && isempty( h_builder.absTOA_sos )
-        
-        % Delay offsets (are identical if Tx and Rx positions are swapped)
-        absTOA_sos = qd_sos( acf, 'Normal', absTOA_lambda );
-        absTOA_sos.sos_phase(:,2) = absTOA_sos(1,1).sos_phase(:,1);
-        
-        if dual_mobility && h_builder.no_rx_positions > 2
-            remove_bias( absTOA_sos, h_builder.rx_positions, h_builder.tx_position );
-        elseif h_builder.no_rx_positions > 2
-            remove_bias( absTOA_sos, h_builder.rx_positions );
-        end
-        
-        h_builder.absTOA_sos = absTOA_sos;
-    end
-    
-    % Initialize the SOS generator for the ground reflection coefficient
-    if ~h_builder.simpar(1,1).use_3GPP_baseline && SC_lambda > 0 && isempty( h_builder.gr_sos )
-        h_builder.gr_sos = qd_sos( acf, 'Uniform', SC_lambda );
-        h_builder.gr_sos.sos_phase(:,2) = h_builder.gr_sos.sos_phase(:,1);
+    % Random generators of the large-scale parameters
+    if isempty( h_builder.lsf_generator )
+        init_lsf_generator( h_builder, dual_mobility );
     end
     
     % Initialize SOS generators for the generation of multipath components
@@ -251,4 +200,48 @@ else
         h_builder.subpath_coupling = h_builder.subpath_coupling( :,1:NumSubPaths,: );
     end
 end
+end
+
+function init_lsf_generator( h_builder, dual_mobility )
+% Draws the phases of the large-scale generators
+
+acf = h_builder.simpar(1,1).autocorrelation_function;
+disable_sc = strcmp( acf, 'Disable' );
+if disable_sc
+    acf = 'Comb256';
+end
+
+% Names of previous versions map to 128, 256, 512 and 1024 sinusoids
+tok = regexp( acf, '^(Exp|Gauss|Comb)(150|300|500|1000)$', 'tokens', 'once' );
+if ~isempty( tok )
+    new_no = {'128','256','512','1024'};
+    acf = [ tok{1}, new_no{ strcmp( tok{2}, {'150','300','500','1000'} ) } ];
+end
+
+scp = h_builder.scenpar;
+names = { 'DS_lambda','KF_lambda','SF_lambda','AS_D_lambda','AS_A_lambda','ES_D_lambda',...
+    'ES_A_lambda','XPR_lambda','absTOA_lambda','SC_lambda' };
+lambda = struct();
+for n = 1 : numel( names )
+    lambda.( names{n} ) = scp.( names{n} );
+end
+if disable_sc
+    lambda.absTOA_lambda = 0;
+    lambda.SC_lambda = 0;
+end
+
+horizontal = ~strcmp( h_builder.simpar(1,1).lsf_model, 'legacy' );
+seed = floor( rand * 2^52 );
+
+% Positions for the bias removal
+rx_pos = [];
+tx_pos = [];
+if h_builder.no_rx_positions > 2
+    rx_pos = h_builder.rx_positions.';
+    tx_pos = h_builder.tx_position.';
+end
+
+h_builder.lsf_generator = struct( 'phase', ...
+    quadriga_lib.lsf_init_phases( lambda, seed, tx_pos, rx_pos, logical( dual_mobility ), true, acf, horizontal ), ...
+    'preset', acf, 'horizontal', horizontal, 'lambda', lambda );
 end

@@ -7,8 +7,9 @@ function [ sf,kf ] = get_sf_profile( h_builder, evaltrack, txpos )
 % Description:
 %   This function returns the shadow fading and the K-factor along the given track. This function
 %   is mainly used by the channel builder class to scale the output channel coefficients. The
-%   profile is calculated by using the data in the LSF autocorrelation model and interpolating it
-%   to the positions in the given track.
+%   profile is obtained from the large-scale generators of the builder at the positions of the
+%   track. The shadow-fading standard deviation of the path-loss model and the environment height
+%   are taken at the initial position of the track (the segment start) and apply to all positions.
 %
 % Input:
 %   evaltrack
@@ -60,55 +61,49 @@ elseif ~any( size(evaltrack) == 1  )
     error('QuaDRiGa:qd_builder:get_sf_profile','??? "evaltrack" must be vector.')
 end
 
-% Get the positions along the track
-x = evaltrack.positions(1,:) + evaltrack.initial_position(1);
-y = evaltrack.positions(2,:) + evaltrack.initial_position(2);
-z = evaltrack.positions(3,:) + evaltrack.initial_position(3);
-
+evaltrack = evaltrack(1,1);
 nP = evaltrack.no_snapshots;
 oP = ones( 1,nP );
 
-% Get the tx_position(s)
-% The readout of the tx-positions must match the readout in "get_lsp_val". Otherwise, results may
-% differ.
+% Track positions followed by the initial position (reference for the SF standard deviation)
+rxpos = [ evaltrack.positions + evaltrack.initial_position * oP, evaltrack.initial_position ];
+
 if h_builder.dual_mobility == -1
     h_builder.check_dual_mobility;
 end
 
 if h_builder.dual_mobility == 0 % Single Mobility
-    % Do not use tx-positions in the SF interpolation
     txpos = h_builder.tx_position(:,1);
     
 elseif ~exist('txpos','var') || isempty( txpos )                % No tx-position given
     error('QuaDRiGa:qd_builder:get_sf_profile','Tx-position is not provided');
     
 elseif isa( txpos, 'qd_track')                              % Input is provided as a "qd_track" object
+    txpos = txpos(1,1);
     if txpos.no_snapshots == 1 && nP > 1
-        txpos = txpos.initial_position(:,oP);
-        
+        txpos = txpos.initial_position(:,[oP,1]);
     elseif txpos.no_snapshots == nP
-        initial_position = txpos.initial_position;
-        txpos = txpos.positions;
-        txpos = txpos + initial_position * oP;
-        
+        txpos = [ txpos.positions + txpos.initial_position * oP, txpos.initial_position ];
     else
         error('QuaDRiGa:qd_builder:get_sf_profile',...
             'Number of positions in tx track does not match number of positions in evaltrack.');
     end
     
-elseif nP > 1 && size( txpos,2 ) == 1
-    txpos = txpos(:,oP);
+elseif size( txpos,2 ) == 1
+    txpos = txpos(:,[oP,1]);
     
-elseif all( size( txpos ) ~= [3,nP] )
+elseif all( size( txpos ) == [3,nP] )
+    txpos = txpos(:,[1:nP,1]);
+    
+else
     error('QuaDRiGa:qd_builder:get_sf_profile','Tx-position is ambiguous.');
 end
 
-if isempty( h_builder.sos )
-    % We don't have a SOS generator for the LSPs. We want to enforce the values from the builder.
-    error('QuaDRiGa:qd_builder:get_sf_profile','No qd_sos object found.');  
-else
-    % Calculate the KF and the SF from the SOS generators
-    [ ~, kf, sf ] = gen_lsf_parameters( h_builder, 3, 0, txpos, [x;y;z] );
+if isempty( h_builder.lsf_generator )
+    error('QuaDRiGa:qd_builder:get_sf_profile','Random generators are not initialized.');
 end
+lsp = lsf_eval( h_builder, txpos, rxpos, h_builder.dual_mobility, nP+1 );
+sf = lsp(1:nP,:,3).';
+kf = lsp(1:nP,:,2).';
 
 end
