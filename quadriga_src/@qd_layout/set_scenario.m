@@ -214,9 +214,9 @@ else
     if indoor_frc > 0
         switch scenario
             case { '3GPP_38.901_UMi', '3GPP_38.901_UMa' }
-                h_layout.gen_o2i_loss( '3GPP_38.901', 0.5, SC_lambda_rx, 25 );
+                h_layout.gen_o2i_loss( '3GPP_38.901', 0.5, o2i_lambda( SC_lambda_rx ), 25 );
             case { '3GPP_38.901_RMa' }
-                h_layout.gen_o2i_loss( '3GPP_38.901', 1, SC_lambda_rx, 10 );
+                h_layout.gen_o2i_loss( '3GPP_38.901', 1, o2i_lambda( SC_lambda_rx ), 10 );
             case { 'mmMAGIC_UMi' }
                 h_layout.gen_o2i_loss( 'mmMAGIC', 0.5, SC_lambda_rx, 25 );
         end
@@ -334,352 +334,47 @@ else
         end
         
         % Determine LOS probability
-        switch scenario
-            case '3GPP_3D_UMi'
-                % See: 3GPP TR 36.873 V12.1.0 (2015-03)
-                scen = { '3GPP_3D_UMi_LOS', '3GPP_3D_UMi_NLOS',...
-                    '3GPP_3D_UMi_LOS_O2I', '3GPP_3D_UMi_NLOS_O2I' };
+        if strcmp( scenario, '3GPP_3D_UMa' )
+            % See: 3GPP TR 36.873 V12.1.0 (2015-03)
+            scen = { '3GPP_3D_UMa_LOS', '3GPP_3D_UMa_NLOS',...
+                '3GPP_3D_UMa_LOS_O2I', '3GPP_3D_UMa_NLOS_O2I' };
+            
+            % Include height-dependency of the user terminals
+            h_UT = rx_trackL.positions( 3,segment_index ) + rx_trackL.initial_position(3);
+            
+            C = zeros( size( dist_2d ));
+            
+            % Exclude outdoor users from height-dependency
+            if indoor_rx(i_rx)
+                g = C;
                 
-                % Determine the LOS probability for each BS-MT
-                p_LOS = min( 18./dist_2d , 1 ) .* (1-exp(-dist_2d/36)) + exp(-dist_2d/36);
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-                
-            case '3GPP_3D_UMa'
-                % See: 3GPP TR 36.873 V12.1.0 (2015-03)
-                scen = { '3GPP_3D_UMa_LOS', '3GPP_3D_UMa_NLOS',...
-                    '3GPP_3D_UMa_LOS_O2I', '3GPP_3D_UMa_NLOS_O2I' };
-                
-                % Include height-dependency of the user terminals
-                h_UT = rx_trackL.positions( 3,segment_index ) + rx_trackL.initial_position(3);
-                
-                C = zeros( size( dist_2d ));
-                
-                % Exclude outdoor users from height-dependency
-                if indoor_rx(i_rx)
-                    g = C;
-                    
-                    ii = dist_2d > 18;
-                    g(ii) = 1.25e-6 .* dist_2d(ii).^2 .* exp( -dist_2d(ii)/150 );
-                    
-                    ii = h_UT > 13 & h_UT < 23;
-                    if any(ii)
-                        C( :,ii ) = ones(no_tx,1) * ((h_UT(ii)-13)/10).^1.5;
-                    end
-                    
-                    C( :,h_UT >= 23 ) = 1;
-                    C = C .* g;
-                end
-                
-                % Determine the LOS probability for each BS-MT
-                p_LOS = ( min( 18./dist_2d , 1 ) .* (1-exp(-dist_2d/63)) + exp(-dist_2d/63) )...
-                    .* (1+C);
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-                
-            case '3GPP_38.901_UMi'
-                % See: 3GPP TR 38.901 V14.1.0 (2017-06) p27 Table 7.4.2-1
-                
-                % The corresponding scenario configuration files
-                scen = { '3GPP_38.901_UMi_LOS', '3GPP_38.901_UMi_NLOS',...
-                    '3GPP_38.901_UMi_LOS_O2I', '3GPP_38.901_UMi_NLOS_O2I' };
-                
-                % Determine the LOS probability for each BS-MT
-                p_LOS = ones( size( dist_2d ));
                 ii = dist_2d > 18;
-                p_LOS( ii )  = 18./dist_2d(ii) + exp(-dist_2d(ii)/36) .* (1 - 18./dist_2d(ii));
-                i_LOS = ( randR >= p_LOS ) + 1;
+                g(ii) = 1.25e-6 .* dist_2d(ii).^2 .* exp( -dist_2d(ii)/150 );
                 
-                
-            case '3GPP_38.901_UMa' 
-                % See: 3GPP TR 38.901 V14.1.0 (2017-06) p27 Table 7.4.2-1
-                
-                % The corresponding scenario configuration files
-                scen = { '3GPP_38.901_UMa_LOS', '3GPP_38.901_UMa_NLOS',...
-                    '3GPP_38.901_UMa_LOS_O2I', '3GPP_38.901_UMa_NLOS_O2I' };
-                
-                % Include height-dependency of the user terminals
-                h_UT = rx_trackL.positions( 3,segment_index ) + rx_trackL.initial_position(3);
-                
-                C = zeros( size( dist_2d ));
                 ii = h_UT > 13 & h_UT < 23;
-                if any( ii )
+                if any(ii)
                     C( :,ii ) = ones(no_tx,1) * ((h_UT(ii)-13)/10).^1.5;
                 end
+                
                 C( :,h_UT >= 23 ) = 1;
-                
-                % Determine the LOS probability for each BS-MT
-                p_LOS = ones( size( dist_2d ));
-                ii = dist_2d > 18;
-                p_LOS( ii )  = ( 18./dist_2d(ii) + exp(-dist_2d(ii)/63) .* (1 - 18./dist_2d(ii)) ) .* ...
-                    ( 1 + 5/4*C(ii) .* ( dist_2d(ii)./100 ).^3 .* exp(-dist_2d(ii)/150) );
-                
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-                
-            case '3GPP_38.901_RMa' 
-                % See: 3GPP TR 38.901 V14.1.0 (2017-06) p27 Table 7.4.2-1
-                
-                % The corresponding scenario configuration files
-                scen = { '3GPP_38.901_RMa_LOS', '3GPP_38.901_RMa_NLOS',...
-                    '3GPP_38.901_RMa_LOS_O2I', '3GPP_38.901_RMa_NLOS_O2I' };
-                
-                % Determine the LOS probability for each BS-MT
-                p_LOS = ones( size( dist_2d ));
-                ii = dist_2d > 10;
-                p_LOS( ii )  = exp( -(dist_2d(ii)-10)/1000 );
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-                
-            case '3GPP_38.901_Indoor_Mixed_Office'
-                % See: 3GPP TR 38.901 V14.1.0 (2017-06) p27 Table 7.4.2-1
-                scen = { '3GPP_38.901_Indoor_LOS', '3GPP_38.901_Indoor_NLOS' };
-                
-                p_LOS = ones( size( dist_2d ));
-                ii = dist_2d > 1.2 & dist_2d < 6.5;
-                p_LOS( ii )  = exp( -(dist_2d(ii)-1.2)/4.7 );
-                ii = dist_2d >= 6.5;
-                p_LOS( ii )  = exp( -(dist_2d(ii)-6.5)/32.6 )*0.32;
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-                
-            case '3GPP_38.901_Indoor_Open_Office'
-                % See: 3GPP TR 38.901 V14.1.0 (2017-06) p27 Table 7.4.2-1
-                scen = { '3GPP_38.901_Indoor_LOS', '3GPP_38.901_Indoor_NLOS' };
-                
-                p_LOS = ones( size( dist_2d ));
-                ii = dist_2d > 5 & dist_2d <= 49;
-                p_LOS( ii )  = exp( -(dist_2d(ii)-5)/70.8 );
-                ii = dist_2d > 49;
-                p_LOS( ii )  = exp( -(dist_2d(ii)-49)/211.7 )*0.54;
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-            case '5G-ALLSTAR_DenseUrban'
-                % See: 3GPP TR 38.811 V15.2.0 (2019-09), pp 48, Table 6.6.1-1
-                scen = { '5G-ALLSTAR_DenseUrban_LOS', '5G-ALLSTAR_DenseUrban_NLOS', 'Null' };
-                
-                % Height of the TX above the receivers tangential plane
-                h_tx = reshape( tx_pos_3d(3,rxi,:) , nS, [] ).';
-                
-                % Elevation angle in [degree]
-                elevation = atand( h_tx ./ dist_2d );
-                
-                % LOS probabilities vs. elevation angle in [%] from 3GPP TR 38.811
-                los_prob = [ 0, 0, 28.2, 33.1, 39.8, 46.8, 53.7, 61.2, 73.8, 82.0, 98.1 ];
-                p_LOS = quadriga_lib.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
-                p_LOS = reshape( p_LOS,[],nS );
-                
-                % Get the scenario index
-                i_LOS = ( randR >= p_LOS/100 ) + 1;
+                C = C .* g;
+            end
+            
+            % Determine the LOS probability for each BS-MT
+            p_LOS = ( min( 18./dist_2d , 1 ) .* (1-exp(-dist_2d/63)) + exp(-dist_2d/63) )...
+                .* (1+C);
+            i_LOS = ( randR >= p_LOS ) + 1;
+        else
+            % Models of quadriga_lib.los_probability
+            [ scen, model ] = los_model( scenario );
+            h_tx = reshape( tx_pos_3d(3,rxi,:) , nS, [] ).';     % BS heights
+            h_ut = ones( no_tx,1 ) * rx_pos_3d(3,rxi,1);         % UT heights
+            p_LOS = quadriga_lib.los_probability( model, dist_2d(:), h_tx(:), h_ut(:) );
+            p_LOS = reshape( p_LOS, size( dist_2d ) );
+            i_LOS = ( randR >= p_LOS ) + 1;
+            if numel( scen ) == 3
                 i_LOS( h_tx<0 ) = 3;    % Satellite is below the horizon
-                
-            case '5G-ALLSTAR_Urban'
-                % See: 3GPP TR 38.811 V15.2.0 (2019-09), pp 48, Table 6.6.1-1
-                scen = { '5G-ALLSTAR_Urban_LOS', '5G-ALLSTAR_Urban_NLOS', 'Null' };
-                
-                % Height of the TX above the receivers tangential plane
-                h_tx = reshape( tx_pos_3d(3,rxi,:) , nS, [] ).';
-                
-                % Elevation angle in [degree]
-                elevation = atand( h_tx ./ dist_2d );
-                
-                % LOS probabilities vs. elevation angle in [%] from 3GPP TR 38.811
-                los_prob = [ 0, 0, 24.6, 38.6, 49.3, 61.3, 72.6, 80.5, 91.9, 96.8, 99.2 ];
-                p_LOS = quadriga_lib.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
-                p_LOS = reshape( p_LOS,[],nS );
-                
-                % Get the scenario index
-                i_LOS = ( randR >= p_LOS/100 ) + 1;
-                i_LOS( h_tx<0 ) = 3;    % Satellite is below the horizon
-                
-            case '5G-ALLSTAR_Suburban'
-                % See: 3GPP TR 38.811 V15.2.0 (2019-09), pp 48, Table 6.6.1-1
-                scen = { '5G-ALLSTAR_Suburban_LOS', '5G-ALLSTAR_Suburban_NLOS', 'Null' };
-                
-                % Height of the TX above the receivers tangential plane
-                h_tx = reshape( tx_pos_3d(3,rxi,:) , nS, [] ).';
-                
-                % Elevation angle in [degree]
-                elevation = atand( h_tx ./ dist_2d );
-                
-                % LOS probabilities vs. elevation angle in [%] from 3GPP TR 38.811
-                los_prob = [ 0, 0, 78.2, 86.9, 91.9, 92.9, 93.5, 94.0, 94.9, 95.2, 99.8 ];
-                p_LOS = quadriga_lib.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
-                p_LOS = reshape( p_LOS,[],nS );
-                
-                % Get the scenario index
-                i_LOS = ( randR >= p_LOS/100 ) + 1;
-                i_LOS( h_tx<0 ) = 3;    % Satellite is below the horizon
-                
-            case '5G-ALLSTAR_Rural'
-                % See: 3GPP TR 38.811 V15.2.0 (2019-09), pp 48, Table 6.6.1-1
-                scen = { '5G-ALLSTAR_Rural_LOS', '5G-ALLSTAR_Rural_NLOS', 'Null' };
-                
-                % Height of the TX above the receivers tangential plane
-                h_tx = reshape( tx_pos_3d(3,rxi,:) , nS, [] ).';
-                
-                % Elevation angle in [degree]
-                elevation = atand( h_tx ./ dist_2d );
-                
-                % LOS probabilities vs. elevation angle in [%] from 3GPP TR 38.811
-                los_prob = [ 0, 0, 78.2, 86.9, 91.9, 92.9, 93.5, 94.0, 94.9, 95.2, 99.8 ];
-                p_LOS = quadriga_lib.interp( [-90,0:10:90], [], los_prob, elevation(:).'  ).';
-                p_LOS = reshape( p_LOS,[],nS );
-                
-                % Get the scenario index
-                i_LOS = ( randR >= p_LOS/100 ) + 1;
-                i_LOS( h_tx<0 ) = 3;    % Satellite is below the horizon
-                
-            case 'mmMAGIC_UMi'
-                % Same LOS probability model as in 3GPP is used
-                % See: mmMAGIC Deliverable D2.2, Table 4.1
-                % See: 3GPP TR 38.901 V14.1.0 (2017-06) p27 Table 7.4.2-1
-                
-                % The corresponding scenario configuration files
-                scen = { 'mmMAGIC_UMi_LOS', 'mmMAGIC_UMi_NLOS',...
-                    'mmMAGIC_UMi_LOS_O2I', 'mmMAGIC_UMi_NLOS_O2I' };
-                
-                % Determine the LOS probability for each BS-MT
-                p_LOS = ones( size( dist_2d ));
-                ii = dist_2d > 18;
-                p_LOS( ii )  = 18./dist_2d(ii) + exp(-dist_2d(ii)/36) .* (1 - 18./dist_2d(ii));
-                
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-                
-            case 'mmMAGIC_Indoor'
-                % Same LOS probability model as in 3GPP is used (mixed office)
-                % See: mmMAGIC Deliverable D2.2, Table 4.1
-                % See: 3GPP TR 38.901 V14.1.0 (2017-06) p27 Table 7.4.2-1
-                
-                % The corresponding scenario configuration files
-                scen = { 'mmMAGIC_Indoor_LOS', 'mmMAGIC_Indoor_NLOS' };
-
-                % Determine the LOS probability for each BS-MT
-                p_LOS = ones( size( dist_2d ));
-                ii = dist_2d > 1.2 & dist_2d < 6.5;
-                p_LOS( ii )  = exp( -(dist_2d(ii)-1.2)/4.7 );
-                ii = dist_2d >= 6.5;
-                p_LOS( ii )  = exp( -(dist_2d(ii)-6.5)/32.6 )*0.32;
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-            case 'QuaDRiGa_Industrial'
-                % See: 3GPP TR 38.901 V14.1.0 (2017-06) p27 Table 7.4.2-1
-                
-                % The corresponding scenario configuration files
-                scen = { 'QuaDRiGa_Industrial_LOS', 'QuaDRiGa_Industrial_NLOS' };
-                
-                h_tx = reshape( tx_pos_3d(3,rxi,:) , nS, [] ).';
-                h_tx = min( h_tx, 8 );
-                
-                p_LOS = exp( -(dist_2d+20)/80 ) .* exp( h_tx./5 - 1 );
-                p_LOS = min( p_LOS, 1 );
-                
-                i_LOS = ( randR >= p_LOS ) + 1; 
-                
-            case 'QuaDRiGa_UD2D'
-                % Same as 3GPP TR 38.901 UMi
-                % See: 3GPP TR 38.901 V14.1.0 (2017-06) p27 Table 7.4.2-1
-                
-                % The corresponding scenario configuration files
-                scen = { 'QuaDRiGa_UD2D_LOS', 'QuaDRiGa_UD2D_NLOS' };
-                
-                % Determine the LOS probability for each BS-MT
-                p_LOS = ones( size( dist_2d ));
-                ii = dist_2d > 18;
-                p_LOS( ii )  = 18./dist_2d(ii) + exp(-dist_2d(ii)/36) .* (1 - 18./dist_2d(ii));
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-            case '3GPP_38.901_InF_SL'
-                % See: 3GPP TR 38.901 V16.0.0, pp 30, Table 7.4.2-1
-                % The corresponding scenario configuration files
-                scen = { '3GPP_38.901_InF_LOS', '3GPP_38.901_InF_NLOS_SL'};
-                % Determine the LOS probability for each BS-MT
-                r = 0.2; % clutter density (fix at 20% or use a random value under 40%) *38.901 table 7.2-4*
-                if ~exist('r','var')
-                    r = rand(1,1);
-                    while (r>= 0.4)
-                        r = rand(1,1);
-                    end
-                end
-               
-                d_clutter = 10; %clutter size *38.901 table 7.2-4*
-                ksub = -d_clutter/log(1-r);
-                p_LOS = ones( size( dist_2d ));
-                p_LOS = exp(-dist_2d./ksub);
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-            case '3GPP_38.901_InF_DL'
-                % See: 3GPP TR 38.901 V16.0.0, pp 30, Table 7.4.2-1
-                % The corresponding scenario configuration files
-                scen = { '3GPP_38.901_InF_LOS', '3GPP_38.901_InF_NLOS_DL'};
-                % Determine the LOS probability for each BS-MT
-                r = 0.6; % clutter density (fix at 60% or use a random value greater than oe equal 40%) *38.901 table 7.2-4*
-                if ~exist('r','var')
-                    r = rand(1,1);
-                    while (r< 0.4)
-                        r = rand(1,1);
-                    end
-                end
-                
-                d_clutter = 2; % clutter size *38.901 table 7.2-4*
-                ksub = -d_clutter/log(1-r);
-                p_LOS = ones( size( dist_2d ));
-                p_LOS = exp(-dist_2d./ksub);
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-            case '3GPP_38.901_InF_SH'
-                % See: 3GPP TR 38.901 V16.0.0, pp 30, Table 7.4.2-1
-                % The corresponding scenario configuration files
-                scen = { '3GPP_38.901_InF_LOS', '3GPP_38.901_InF_NLOS_SH'};
-                % Determine the LOS probability for each BS-MT
-                r = 0.2; % clutter density (fix at 20% or use a random value under 40%) *38.901 table 7.2-4*
-                if ~exist('r','var')
-                    r = rand(1,1);
-                    while (r>= 0.4)
-                        r = rand(1,1);
-                    end
-                end
-                
-                % Include height-dependency of the user terminals
-                h_UT = rx_trackL.positions( 3,segment_index ) + rx_trackL.initial_position(3);
-                h_tx = reshape( tx_pos_3d(3,rxi,:) , nS, [] ).';
-                
-                %h_c = 10*rand(1,1);
-                h_c = 2; % clutter height *38.901 table 7.2-4*
-                d_clutter = 10; % clutter size *38.901 table 7.2-4*
-                ksub = -d_clutter/log(1-r)*((h_tx-h_UT)/(h_c-h_UT));
-                p_LOS = ones( size( dist_2d ));
-                p_LOS = exp(-dist_2d./ksub);
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-            case '3GPP_38.901_InF_DH'
-                % See: 3GPP TR 38.901 V16.0.0, pp 30, Table 7.4.2-1
-                % The corresponding scenario configuration files
-                scen = { '3GPP_38.901_InF_LOS', '3GPP_38.901_InF_NLOS_DH'};    
-                % Determine the LOS probability for each BS-MT
-                r = 0.4; % clutter density (fix at 40% or use a random value greater than or equal 40%) *38.901 table 7.2-4*
-                if ~exist('r','var')
-                    r = rand(1,1);
-                    while (r< 0.4)
-                        r = rand(1,1);
-                    end
-                end
-                
-                % Include height-dependency of the user terminals
-                h_UT = rx_trackL.positions( 3,segment_index ) + rx_trackL.initial_position(3);
-                h_tx = reshape( tx_pos_3d(3,rxi,:) , nS, [] ).';
-                
-                %h_c = 10*rand(1,1);
-                h_c = 6; % Clutter height *38.901 table 7.2-4*
-                d_clutter = 2; %Clutter size *38.901 table 7.2-4*
-                ksub = -d_clutter/log(1-r)*((h_tx-h_UT)/(h_c-h_UT));
-                p_LOS = ones( size( dist_2d ));
-                p_LOS = exp(-dist_2d./ksub);
-                i_LOS = ( randR >= p_LOS ) + 1;
-                
-            otherwise
-                error('QuaDRiGa:qd_layout:set_scenario:scenario_not_supported','Scenario is not supported.')
+            end
         end
         
         % Set the indoor scenarios
@@ -712,5 +407,46 @@ else
         % Reassign track handle to layout
         h_layout.Prx_track( 1,rx( i_rx ) ) = rx_trackL;
     end
+end
+end
+
+function SC_lambda = o2i_lambda( SC_lambda_rx )
+% Decorrelation distance of the O2I loss: TR 38.901 values, uncorrelated if the LOS state is
+if SC_lambda_rx == 0
+    SC_lambda = 0;
+else
+    SC_lambda = [];
+end
+end
+
+function [ scen, model ] = los_model( scenario )
+% Scenario files (LOS, NLOS, LOS_O2I, NLOS_O2I) and LOS-probability model of a scenario group
+switch scenario
+    case { '3GPP_3D_UMi', '3GPP_38.901_UMi', '3GPP_38.901_UMa', '3GPP_38.901_RMa', 'mmMAGIC_UMi' }
+        scen = strcat( scenario, { '_LOS', '_NLOS', '_LOS_O2I', '_NLOS_O2I' } );
+        model = [ '38.901_', scenario( end-2:end ) ];
+    case '3GPP_38.901_Indoor_Mixed_Office'
+        scen = { '3GPP_38.901_Indoor_LOS', '3GPP_38.901_Indoor_NLOS' };
+        model = '38.901_InH_Mixed';
+    case '3GPP_38.901_Indoor_Open_Office'
+        scen = { '3GPP_38.901_Indoor_LOS', '3GPP_38.901_Indoor_NLOS' };
+        model = '38.901_InH_Open';
+    case { '5G-ALLSTAR_DenseUrban', '5G-ALLSTAR_Urban', '5G-ALLSTAR_Suburban', '5G-ALLSTAR_Rural' }
+        scen = [ strcat( scenario, { '_LOS', '_NLOS' } ), { 'Null' } ];
+        model = [ '38.811_', scenario( 12:end ) ];
+    case 'mmMAGIC_Indoor'
+        scen = { 'mmMAGIC_Indoor_LOS', 'mmMAGIC_Indoor_NLOS' };
+        model = '38.901_InH_Mixed';
+    case 'QuaDRiGa_Industrial'
+        scen = { 'QuaDRiGa_Industrial_LOS', 'QuaDRiGa_Industrial_NLOS' };
+        model = 'QuaDRiGa_Industrial';
+    case 'QuaDRiGa_UD2D'
+        scen = { 'QuaDRiGa_UD2D_LOS', 'QuaDRiGa_UD2D_NLOS' };
+        model = '38.901_UMi';
+    case { '3GPP_38.901_InF_SL', '3GPP_38.901_InF_DL', '3GPP_38.901_InF_SH', '3GPP_38.901_InF_DH' }
+        scen = { '3GPP_38.901_InF_LOS', [ '3GPP_38.901_InF_NLOS_', scenario( end-1:end ) ] };
+        model = [ '38.901_InF_', scenario( end-1:end ) ];   % Clutter parameters of TR 38.901 Table 7.2-4
+    otherwise
+        error('QuaDRiGa:qd_layout:set_scenario:scenario_not_supported','Scenario is not supported.')
 end
 end
