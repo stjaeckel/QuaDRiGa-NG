@@ -112,6 +112,9 @@ for n = 1 : 2
         if isfield( p.(fld) , 'AutoCorrFcn' )
             h_layout.simpar(1,1).autocorrelation_function = regexp( p.(fld).AutoCorrFcn,'[a-zA-Z0-9]+','once','match');
         end
+        if isfield( p.(fld) , 'LSFModel' )
+            h_layout.simpar(1,1).lsf_model = regexp( p.(fld).LSFModel,'[a-zA-Z0-9.]+','once','match');
+        end
         if isfield( p.(fld) , 'ProgressReport' )
             h_layout.simpar(1,1).show_progress_bars = ...
                 str2double( regexp( p.(fld).ProgressReport,'[0,1]','once','match' ) );

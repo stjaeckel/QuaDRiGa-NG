@@ -7,6 +7,7 @@ s.autocorrelation_function = 'Exp150';
 s.use_random_initial_phase = 0;
 s.show_progress_bars = 0;
 s.sample_density = 0.03;
+s.lsf_model = 'legacy';
 
 l = qd_layout(s);
 l.name = 'MiMuMa';
@@ -42,6 +43,7 @@ assertEqual( l.simpar.center_frequency, k.simpar.center_frequency );
 assertEqual( l.simpar.use_absolute_delays, k.simpar.use_absolute_delays );
 assertEqual( l.simpar.use_3GPP_baseline, k.simpar.use_3GPP_baseline );
 assertEqual( l.simpar.autocorrelation_function, k.simpar.autocorrelation_function );
+assertEqual( l.simpar.lsf_model, k.simpar.lsf_model );
 assertEqual( l.simpar.show_progress_bars, k.simpar.show_progress_bars );
 assertEqual( l.simpar.use_random_initial_phase, k.simpar.use_random_initial_phase );
 assertEqual( l.update_rate, k.update_rate );

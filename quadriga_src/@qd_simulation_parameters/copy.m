@@ -63,7 +63,8 @@ if ~exist( 'in','var' )
 else
     % The list of properties that need to be copied
     prop = {'Pcenter_frequency','Psample_density','Puse_3GPP_baseline',...
-        'use_absolute_delays','use_random_initial_phase','show_progress_bars','autocorrelation_function'};
+        'use_absolute_delays','use_random_initial_phase','show_progress_bars','autocorrelation_function',...
+        'lsf_model'};
     
     % Empty outout
     out = [];

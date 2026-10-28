@@ -33,6 +33,7 @@ h = uint32( mod( abs(h)*100, 2147483647 ) );
 h = h + uint32( numel(h_simpar.center_frequency) + h_simpar.use_3GPP_baseline + ...
     h_simpar.use_absolute_delays + h_simpar.use_random_initial_phase  );
 h = h + sum( cast( h_simpar.autocorrelation_function,'uint32' ) );
+h = h + sum( cast( h_simpar.lsf_model,'uint32' ) );
 
 h = uint64( h );
 

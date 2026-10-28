@@ -262,6 +262,14 @@ else
     fprintf(f,'</Data>\n');
 end
 
+if use_description
+    fprintf(f,['LSFModel = ',h_layout.simpar(1,1).lsf_model,'\n']);
+else
+    fprintf(f,'\t\t<Data name="LSFModel">');
+    fprintf(f,['<value>',h_layout.simpar(1,1).lsf_model,'</value>']);
+    fprintf(f,'</Data>\n');
+end
+
 val = sprintf('%u,%u ',h_layout.pairing(:));
 if use_description
     fprintf(f,['Pairing = ',val(1:end-1),'\n']);

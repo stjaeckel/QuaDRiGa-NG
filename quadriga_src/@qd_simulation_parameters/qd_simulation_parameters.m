@@ -98,6 +98,21 @@ properties
     %   * Combined Gaussian and Exponential ACF (Comb128, Comb256, Comb512, Comb1024)
     %   * Disable Spatial Consistency for Small-Scale Fading (Disable)
     autocorrelation_function = 'Comb256';
+
+    % Large-scale model: '38.901' (default) or 'legacy'
+    %   Selects the generation of the path loss and the large-scale parameters (LSPs).
+    %
+    %   * '38.901' follows 3GPP TR 38.901 v19.5.0: the LSPs are correlated in the horizontal
+    %     plane; the cross-correlation uses the Cholesky factorization in the order of clause 7.5,
+    %     step 4; the azimuth spreads are limited to 104 deg and the elevation spreads to 52 deg;
+    %     the shadow-fading standard deviation is given by the path-loss model; the path loss of
+    %     indoor terminals uses the geometric distance (eq. 7.4-1).
+    %   * 'legacy' is the original QuaDRiGa large-scale model: the LSPs are correlated in 3D space; the
+    %     cross-correlation uses the symmetric square root of the correlation matrix; the spreads
+    %     are not limited; the shadow-fading standard deviation is given by the scenario
+    %     parameters (by the path-loss model if use_3GPP_baseline is set); the path loss of indoor
+    %     terminals uses the outdoor distance.
+    lsf_model = '38.901';
 end
 
 properties(Constant)
@@ -219,6 +234,14 @@ methods
                 '??? "show_progress_bars" must be 0 or 1')
         end
         obj.show_progress_bars = logical( value );
+    end
+
+    function set.lsf_model(obj,value)
+        if ~( ischar(value) && any( strcmp( value, {'38.901','legacy'} ) ) )
+            error('QuaDRiGa:qd_simulation_parameters:lsf_model',...
+                '??? "lsf_model" must be ''38.901'' or ''legacy''')
+        end
+        obj.lsf_model = value;
     end
 end
 
