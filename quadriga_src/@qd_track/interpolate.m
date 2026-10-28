@@ -238,7 +238,7 @@ elseif update_input || nargout > 1                                      % Only i
         pos_int = zeros( 3,no_snapshots_out );
         for n = 1 : 3                                               % Interpolate the positions
             if use_linear_interpolation
-                pos_int(n,:) = quadriga_lib.interp( dist_in, 0, positions(n,:), dist );
+                pos_int(n,:) = quadriga_lib.interp( dist_in, [], positions(n,:), dist );
             else
                 pos_int(n,:) = pchip( dist_in, positions(n,:), dist );
             end
@@ -263,7 +263,7 @@ elseif update_input || nargout > 1                                      % Only i
                 val = par.( names{i_par} );
                 if ~isempty( val )
                     if use_linear_interpolation
-                        val_int = quadriga_lib.interp( dist_in, 0, val, dist );
+                        val_int = quadriga_lib.interp( dist_in, [], val, dist );
                     else
                         val_int = pchip( dist_in, val, dist );
                     end
