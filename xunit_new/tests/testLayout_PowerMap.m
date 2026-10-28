@@ -26,6 +26,8 @@ assertTrue( isnumeric(v) && isreal(v) );
 assertTrue( all(~isnan(v)) );
 assertTrue( min(v)>0 );
 assertTrue( max(v)<Inf );
+sf_dB = 10*log10( map2{1}(:) ./ map{1}(:) );                     % Shadow fading of the map
+assertTrue( std( sf_dB ) > 0.5 );
 
 [map3 , posx , posy ] = power_map( l , {'BERLIN_UMa_LOS','Ul'} , 'phase' , 50 );
 

@@ -167,6 +167,9 @@ else
     tx_reference = qd_arrayant([]);
     rx_reference = qd_arrayant([]);
 
+    % Path powers of all users; each read of "h_builder.pow" evaluates the path loss of all users
+    pow = h_builder.pow;
+
     % The loop for each user position
     for i_mobile = 1 : n_mobiles
 
@@ -228,7 +231,7 @@ else
         end
 
         % Get the list of zero-power paths - we do not return paths with zero-power
-        iClst       = h_builder.pow(i_mobile,:) ~= 0;               % Index-list of active clusters
+        iClst       = pow(i_mobile,:) ~= 0;               % Index-list of active clusters
         iClst(1)    = true;                                         % LOS is always present
         if use_ground_reflection
             iClst(2) = true;
@@ -335,8 +338,8 @@ else
                 R_per     = ( sin(theta_r) - Z) ./ ( sin(theta_r) + Z);
 
                 % Read the path power scaling that was used in "generate_initial_paths.m"
-                P_LOS = h_builder.pow(i_mobile,1);
-                P_GR  = h_builder.pow(i_mobile,2);
+                P_LOS = pow(i_mobile,1);
+                P_GR  = pow(i_mobile,2);
                 if P_GR < 1e-10
                     Sl  = 1;
                     gSv = 0;
@@ -412,7 +415,7 @@ else
         end
 
         % The path powers
-        p_cl = repmat( h_builder.pow(i_mobile,iClst), n_links, 1 );
+        p_cl = repmat( pow(i_mobile,iClst), n_links, 1 );
 
         % The powers of the antenna patterns at the given angles (power-sum)
         p_pat = sum( ppat,3 ) ./ size(ppat,3);
@@ -470,11 +473,11 @@ else
 
             % Get the normalized power for the LOS and NLOS componenets ( p_los + p_nlos = 1 )
             if use_ground_reflection
-                p_los  = h_builder.pow( i_mobile,1 ) + h_builder.pow( i_mobile,2 );
-                p_nlos = sum( h_builder.pow(i_mobile,3:end) );
+                p_los  = pow( i_mobile,1 ) + pow( i_mobile,2 );
+                p_nlos = sum( pow(i_mobile,3:end) );
             else
-                p_los  = h_builder.pow( i_mobile,1 );
-                p_nlos = sum( h_builder.pow(i_mobile,2:end) );
+                p_los  = pow( i_mobile,1 );
+                p_nlos = sum( pow(i_mobile,2:end) );
             end
 
             % Adjust the path powers to apply the varying KF along the track segment
@@ -552,15 +555,15 @@ else
         par_struct.AoA_cb = h_builder.AoA( i_mobile,iClst ) * 180/pi; % [deg]
         par_struct.EoD_cb = h_builder.EoD( i_mobile,iClst ) * 180/pi; % [deg]
         par_struct.EoA_cb = h_builder.EoA( i_mobile,iClst ) * 180/pi; % [deg]
-        par_struct.pow_cb = h_builder.pow( i_mobile,iClst );          % [W]
+        par_struct.pow_cb = pow( i_mobile,iClst );          % [W]
         par_struct.gain_cb = h_builder.gain( i_mobile,iClst );          % [W]
 
         % Calculate the spreads at the output of the builder
-        par_struct.ds_cb  = qf.calc_delay_spread( h_builder.taus( i_mobile,iClst ), h_builder.pow( i_mobile, iClst ) );
-        par_struct.asD_cb = qf.calc_angular_spreads( h_builder.AoD( i_mobile,iClst ), h_builder.pow( i_mobile, iClst ) ) * 180/pi;
-        par_struct.asA_cb = qf.calc_angular_spreads( h_builder.AoA( i_mobile,iClst ), h_builder.pow( i_mobile, iClst ) ) * 180/pi;
-        par_struct.esD_cb = qf.calc_angular_spreads( h_builder.EoD( i_mobile,iClst ), h_builder.pow( i_mobile, iClst ) ) * 180/pi;
-        par_struct.esA_cb = qf.calc_angular_spreads( h_builder.EoA( i_mobile,iClst ), h_builder.pow( i_mobile, iClst ) ) * 180/pi;
+        par_struct.ds_cb  = qf.calc_delay_spread( h_builder.taus( i_mobile,iClst ), pow( i_mobile, iClst ) );
+        par_struct.asD_cb = qf.calc_angular_spreads( h_builder.AoD( i_mobile,iClst ), pow( i_mobile, iClst ) ) * 180/pi;
+        par_struct.asA_cb = qf.calc_angular_spreads( h_builder.AoA( i_mobile,iClst ), pow( i_mobile, iClst ) ) * 180/pi;
+        par_struct.esD_cb = qf.calc_angular_spreads( h_builder.EoD( i_mobile,iClst ), pow( i_mobile, iClst ) ) * 180/pi;
+        par_struct.esA_cb = qf.calc_angular_spreads( h_builder.EoA( i_mobile,iClst ), pow( i_mobile, iClst ) ) * 180/pi;
 
         if ~use_3GPP_baseline
             par_struct.NumSubPaths = h_builder.NumSubPaths(1,iClst);

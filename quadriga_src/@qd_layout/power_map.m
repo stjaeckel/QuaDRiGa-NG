@@ -27,7 +27,8 @@ function [ map, x_coords, y_coords] = power_map( h_layout, scenario, usage, samp
 %   A string specifying the detail level. The following options are implemented:
 %      * 'quick' - Uses the antenna patterns, the LOS path, and the path gain from the scenario
 %      * 'sf' - Uses the antenna patterns, the LOS path, the path gain from the scenario, and a
-%         shadow fading map
+%         shadow fading map. If 'scenario' is a 'qd_builder' object with initialized random
+%         generators, its shadow-fading field is used.
 %      * 'detailed' - Runs a full simulation for each pixel of the map (very slow)
 %      * 'phase' - Same as quick, but the output contains the complex-valued amplitude instead of
 %        the power
@@ -242,8 +243,9 @@ for i_bs = 1 : n_bs
 end
 
 if strcmp( usage , 'sf' )
-	% Calculate parameter maps
-    init_sos( h_builder );
+    % Shadow fading at the map positions (generators of a given builder are reused)
+    init_sos( h_builder, 2 );
+    gen_lsf_parameters( h_builder );
     usage = 'quick';
 end
 
