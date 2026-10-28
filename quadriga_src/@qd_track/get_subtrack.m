@@ -69,7 +69,7 @@ end
 
 % Make a copy of the parameters
 par = h_track.par;
-names = {'o2i_loss','o2i_d3din'};
+names = {'o2i_loss','o2i_d2din'};
 
 for seg = 1 : numel(i_segment)
     segment = i_segment(seg);
@@ -148,7 +148,7 @@ for seg = 1 : numel(i_segment)
     
     if ~isempty(par)
         % Init struct
-        out_par = struct('o2i_loss',[],'o2i_d3din', []);
+        out_par = struct('o2i_loss',[],'o2i_d2din', []);
         
         % Copy the data
         for n = 1 : numel( fieldnames( out_par ) )

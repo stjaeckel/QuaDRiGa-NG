@@ -324,17 +324,13 @@ else
 
         segment_index = rx_trackL.segment_index;
         
-        dist_3d = rx_pos_3d(:,rxi,:) - tx_pos_3d(:,rxi,:);
-        dist_2d = sqrt( sum( dist_3d(1:2,:).^2 ,1) );
+        dist_2d = rx_pos_3d(1:2,rxi,:) - tx_pos_3d(1:2,rxi,:);
+        dist_2d = sqrt( sum( dist_2d.^2 ,1) );
         dist_2d = reshape( dist_2d, nS, [] ).';
-        dist_3d = sqrt( sum( dist_3d.^2 ,1) );
-        dist_3d = reshape( dist_3d, nS, [] ).';
         
-        % Calculate the outdoor 2D and 3D distance (for indoor scenarios)
-        if ~isempty( rx_trackL.par )
-            dist_3d_in = rx_trackL.par.o2i_d3din;
-            dist_2d_in = dist_2d .* dist_3d_in ./ dist_3d;
-            dist_2d = dist_2d - dist_2d_in;
+        % Outdoor 2D distance of indoor terminals
+        if ~isempty( rx_trackL.par ) && isfield( rx_trackL.par, 'o2i_d2din' )
+            dist_2d = max( dist_2d - rx_trackL.par.o2i_d2din, 0 );
         end
         
         % Determine LOS probability

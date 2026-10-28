@@ -204,7 +204,7 @@ elseif n_freq > 1
                             if size( val,3 ) == n_freq 
                                 data.( fn{d} ) = val( :,:,f );
                             else
-                                data.( fn{d} ) = val( :,:,1 );     % For 'o2i_d3din'
+                                data.( fn{d} ) = val( :,:,1 );     % For 'o2i_d2din'
                             end
                         end
                     end

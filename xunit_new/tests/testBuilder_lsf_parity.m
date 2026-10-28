@@ -3,7 +3,8 @@ function testBuilder_lsf_parity
 %
 % The reference values are written by 'data/make_lsf_parity_ref.m'. Each scenario is evaluated
 % with the stored phases on a drop of 24 positions (3.5 GHz), a drop of 3 positions (3.5 and
-% 28 GHz), an outdoor track and two indoor tracks.
+% 28 GHz), an outdoor track and two indoor tracks, with qd_simulation_parameters.lsf_model set to
+% 'legacy'.
 
 d = load( fullfile( fileparts( mfilename('fullpath') ), 'data', 'lsf_parity_ref.mat' ) );
 tol = 1e-12;
@@ -12,6 +13,7 @@ for n = 1 : numel( d.ref )
     ref = d.ref(n);
     b = qd_builder( ref.scenario );
     b.simpar.show_progress_bars = 0;
+    b.simpar.lsf_model = 'legacy';
 
     for drop = { ref.drop, ref.drop3 }
         r = drop{1};
@@ -28,7 +30,7 @@ for n = 1 : numel( d.ref )
             assert_close( b.gr_epsilon_r, r.gr, tol, [msg,', ground permittivity'] );
         end
 
-        [ pl, scale_sf ] = get_pl_per_freq( b );
+        [ pl, scale_sf ] = b.get_pl;
         assert_close( pl(:,r.pl_valid), r.pl(:,r.pl_valid), tol, [msg,', path loss'] );
         if r.sf_base_valid
             sf_base = b.sf .^ scale_sf;
@@ -43,7 +45,9 @@ for n = 1 : numel( d.ref )
         t = qd_track([]);
         t.positions = r.positions;
         t.initial_position = r.initial_position;
-        t.par = r.par;
+        if ~isempty( r.par )
+            t.par = struct( 'o2i_loss', r.par.o2i_loss, 'o2i_d2din', r.d2d_in );
+        end
 
         [ pl, ~, pl_init ] = b.get_pl( t );
         [ sf, kf ] = b.get_sf_profile( t );
@@ -90,22 +94,6 @@ b.gr_sos = [];
 if s.SC_lambda > 0
     b.gr_sos = qd_sos( 'Comb256', 'Uniform', s.SC_lambda );
     b.gr_sos.sos_phase = phase(:,[10,10]);
-end
-end
-
-function [ pl, scale_sf ] = get_pl_per_freq( b )
-% Path loss at the builder positions, one call per frequency for the satellite model
-fc = b.simpar.center_frequency;
-if isstruct( b.plpar ) && isfield( b.plpar, 'model' ) && strcmp( b.plpar.model, 'satellite' )
-    pl = zeros( numel(fc), b.no_rx_positions );
-    scale_sf = pl;
-    for k = 1 : numel( fc )
-        b.simpar.center_frequency = fc(k);
-        [ pl(k,:), scale_sf(k,:) ] = b.get_pl;
-    end
-    b.simpar.center_frequency = fc;
-else
-    [ pl, scale_sf ] = b.get_pl;
 end
 end
 

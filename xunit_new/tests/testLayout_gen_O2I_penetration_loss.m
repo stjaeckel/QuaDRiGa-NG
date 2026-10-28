@@ -29,7 +29,7 @@ o2i_loss = l.gen_o2i_loss('mmMAGIC');                          % Generate o2i pe
 
 % Non-O2I scenario mix of one outdoor and O2I scenario at the same position
 l.rx_track(1,2).scenario= {'3GPP_38.901_UMi_LOS';'3GPP_38.901_UMi_LOS_O2I'};     
-l.rx_track(1,2).par.o2i_d3din(1,:,:) = 0;
+l.rx_track(1,2).par.o2i_d2din(1,:,:) = 0;
 l.rx_track(1,2).par.o2i_loss(1,:,:)  = 0;
 
 % One MT has all outdoor scenarios
@@ -45,7 +45,7 @@ assertTrue( all(all( o2i_loss{1}(:,:,2) > o2i_loss{1}(:,:,1) )) );
 % MT2, MS1 is outdoor
 assertTrue( l.rx_track(1,2).par.o2i_loss(1,:,1) == 0 )
 assertTrue( l.rx_track(1,2).par.o2i_loss(1,:,2) == 0 )
-assertTrue( l.rx_track(1,2).par.o2i_d3din(1,:) == 0 )
+assertTrue( l.rx_track(1,2).par.o2i_d2din(1,:) == 0 )
 
 % MT3 has no indoor users
 assertTrue( isempty( l.rx_track(1,3).par ));
@@ -60,9 +60,9 @@ assertEqual( subtrack(1,1).par.o2i_loss, l.rx_track(1,1).par.o2i_loss(:,1,:) );
 assertEqual( subtrack(1,2).par.o2i_loss, l.rx_track(1,1).par.o2i_loss(:,1:2,:) );
 assertEqual( subtrack(1,end).par.o2i_loss, l.rx_track(1,1).par.o2i_loss(:,end-1:end,:) );
 
-assertEqual( subtrack(1,1).par.o2i_d3din, l.rx_track(1,1).par.o2i_d3din(:,1) );
-assertEqual( subtrack(1,2).par.o2i_d3din, l.rx_track(1,1).par.o2i_d3din(:,1:2) );
-assertEqual( subtrack(1,end).par.o2i_d3din, l.rx_track(1,1).par.o2i_d3din(:,end-1:end) );
+assertEqual( subtrack(1,1).par.o2i_d2din, l.rx_track(1,1).par.o2i_d2din(:,1) );
+assertEqual( subtrack(1,2).par.o2i_d2din, l.rx_track(1,1).par.o2i_d2din(:,1:2) );
+assertEqual( subtrack(1,end).par.o2i_d2din, l.rx_track(1,1).par.o2i_d2din(:,end-1:end) );
 
 % Initialize builder objects
 b = l.init_builder;
@@ -96,10 +96,10 @@ assertEqual( b(1,2).rx_track(1,1).par.o2i_loss, l.rx_track(1,1).par.o2i_loss(2,1
 assertEqual( b(1,3).rx_track(1,1).par.o2i_loss, l.rx_track(1,1).par.o2i_loss(1,1,2) );
 assertEqual( b(1,4).rx_track(1,1).par.o2i_loss, l.rx_track(1,1).par.o2i_loss(2,1,2) );
 
-assertEqual( b(1,1).rx_track(1,1).par.o2i_d3din, l.rx_track(1,1).par.o2i_d3din(1,1) );
-assertEqual( b(1,2).rx_track(1,1).par.o2i_d3din, l.rx_track(1,1).par.o2i_d3din(2,1) );
-assertEqual( b(1,3).rx_track(1,1).par.o2i_d3din, l.rx_track(1,1).par.o2i_d3din(1,1) );
-assertEqual( b(1,4).rx_track(1,1).par.o2i_d3din, l.rx_track(1,1).par.o2i_d3din(2,1) );
+assertEqual( b(1,1).rx_track(1,1).par.o2i_d2din, l.rx_track(1,1).par.o2i_d2din(1,1) );
+assertEqual( b(1,2).rx_track(1,1).par.o2i_d2din, l.rx_track(1,1).par.o2i_d2din(2,1) );
+assertEqual( b(1,3).rx_track(1,1).par.o2i_d2din, l.rx_track(1,1).par.o2i_d2din(1,1) );
+assertEqual( b(1,4).rx_track(1,1).par.o2i_d2din, l.rx_track(1,1).par.o2i_d2din(2,1) );
 
 c = get_channels( b );                  % Get channel coefficients
 
@@ -175,5 +175,5 @@ for n = 1:2
 end
 
 assertTrue( ~isempty( l.rx_track(1,1).par.o2i_loss ) );
-assertTrue( ~isempty( l.rx_track(1,1).par.o2i_d3din ) );
+assertTrue( ~isempty( l.rx_track(1,1).par.o2i_d2din ) );
 

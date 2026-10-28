@@ -11,9 +11,9 @@ function o2i_loss_dB = gen_o2i_loss( h_layout, method, low_loss_fraction, SC_lam
 %   before any other LSF or SSF parameters are generated. The automatic channel generation in
 %   'qd_layout.get_channels' will call all functions in the correct order. For details see: 3GPP TR
 %   38.901 v14.1.0, Sec. 7.4.3, Page 27.
-%   The method generates the O2I-loss and indoor 3D distance as specified by 3GPP. The values are
+%   The method generates the O2I-loss and indoor 2D distance as specified by 3GPP. The values are
 %   then stored with the tracks in 'qd_layout.rx_track.par.o2i_loss' and
-%   'qd_layout.rx_track.par.o2i_d3din'. These two variables are then read again by 'qd_builder.get_pl'
+%   'qd_layout.rx_track.par.o2i_d2din'. These two variables are then read again by 'qd_builder.get_pl'
 %   and applied to the path-loss in the specific scenario.
 %
 % Input:
@@ -89,7 +89,6 @@ end
 if ~exist( 'max_indoor_dist', 'var' ) || isempty( max_indoor_dist )
     max_indoor_dist = 25;
 end
-min_outdoor_dist = 10;
 
 % Spatial consistency variable
 if ~exist( 'gen_per_tx', 'var' ) || isempty( gen_per_tx )
@@ -181,14 +180,12 @@ if 0
     plot( bins', [ qf.acdf( c,bins ), qf.acdf( e,bins ) ] )
 end
 
-% Calculate the total 2D and 3D distances
-d_3d  = zeros( no_tx, no_seg );    % 3D distance
+% Calculate the total 2D distances
 d_2d  = zeros( no_tx, no_seg );    % 2D distance
 theta = zeros( no_tx, no_seg );    % Elevation angle
 for t = 1 : no_tx
     % Vector pointing from the BS to the MT
     pos_tmp = pos - pos_tx(:,:,t);
-    d_3d(t,:)  = sqrt(sum( abs( pos_tmp ).^2,1 ));
     d_2d(t,:)  = sqrt(sum( abs( pos_tmp(1:2,:) ).^2,1 ));
     theta(t,:) = atand( pos_tmp(3,:) ./ d_2d(t,:) );
 end
@@ -207,20 +204,6 @@ d_2d_in = d_2d_in * max_indoor_dist;
 
 % Indoor distance cannot larger than outdoor distance
 d_2d_in( d_2d_in > d_2d ) = d_2d( d_2d_in > d_2d );
-
-% Calculate the indoor 3D distance
-d_3d_in = d_3d .* (1 - (d_2d - d_2d_in) ./ d_2d);
-
-% Make sure the indoor 3D distance does not exceed the total 3D distance
-d_3d_in( isnan( d_3d_in ) ) = inf;
-d_3d_in( d_3d_in > d_3d ) = d_3d( d_3d_in > d_3d );
-
-% Maintain the minimum outdoor distance
-ii = d_3d - d_3d_in < min_outdoor_dist;
-d_3d_in( ii ) = d_3d( ii ) - min_outdoor_dist;
-
-% Set minimum indoor-distance to 0
-d_3d_in( d_3d_in < 0 ) = 0;
 
 switch method
     case '3GPP_38.901'
@@ -315,7 +298,7 @@ for r = 1 : no_rx
     if any( abs( pl_tmp(:) ) ~= 0 )
         par_tmp = h_layout.rx_track(1,r).par;
         par_tmp.o2i_loss  = PL( :, rx_ind(1,:) == r, : );
-        par_tmp.o2i_d3din = d_3d_in(:,rx_ind(1,:) == r);
+        par_tmp.o2i_d2din = d_2d_in(:,rx_ind(1,:) == r);
         h_layout.rx_track(1,r).par = par_tmp;
     end
 end
